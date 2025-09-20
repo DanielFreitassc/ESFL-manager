@@ -9,7 +9,8 @@ public record CostCenterRequestDto(
     @NotBlank(message = "Um custo precisa de um nome")
     String name,
     @NotNull(message = "Um custo precisa tipo")
-    CostType type
+    CostType type,
+    boolean fromAI
 ) {
     
 }

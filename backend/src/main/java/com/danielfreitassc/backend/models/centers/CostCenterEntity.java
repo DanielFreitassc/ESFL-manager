@@ -24,4 +24,5 @@ public class CostCenterEntity {
     private UUID id;
     private String name;
     private CostType type;
+    private boolean fromAI;
 }
