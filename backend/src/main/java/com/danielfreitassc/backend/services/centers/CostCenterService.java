@@ -28,28 +28,44 @@ public class CostCenterService {
     private final CostCenterMapper costCenterMapper;
 
     @Transactional
-    public MessageResponseDto create(List<CostCenterRequestDto> costCenterRequestDto, boolean fromAI) {
+    public MessageResponseDto create(List<CostCenterRequestDto> costCenterRequestDto, boolean approved) {
        List<CostCenterEntity> costCenterEntities = costCenterMapper.toEntityList(costCenterRequestDto);
 
-       costCenterEntities.forEach(entity -> entity.setFromAI(fromAI));
+       costCenterEntities.forEach(entity -> entity.setApproved(!approved));
 
        costCenterRepository.saveAll(costCenterEntities);
        return new MessageResponseDto("Custo cadastrado com sucesso!");
     }
      
     public Page<CostCenterResponseDto> getCosts(Pageable pageable) {
-        return costCenterRepository.findByFromAIFalse(pageable).map(costCenterMapper::toDto);
+        return costCenterRepository.findByApprovedTrue(pageable).map(costCenterMapper::toDto);
+    }
+
+    public Page<CostCenterResponseDto> getForApproved(Pageable pageable) {
+        return costCenterRepository.findByApprovedFalse(pageable).map(costCenterMapper::toDto);
     }
 
     public CostCenterResponseDto getCost(UUID id) {
         return costCenterMapper.toDto(findCostOrThrow(id));
     }
 
+    @Transactional
     public MessageResponseDto updateCost(UUID id, CostCenterRequestDto costCenterRequestDto) {
         CostCenterEntity costCenterEntity = findCostOrThrow(id);
         costCenterMapper.toUpdate(costCenterRequestDto, costCenterEntity);
         costCenterRepository.save(costCenterEntity);
         return new MessageResponseDto("Custo atualizado com sucesso!");
+    }
+
+    public MessageResponseDto approvedCost(UUID id) {
+        CostCenterEntity costCenterEntity = findCostOrThrow(id);
+
+
+        costCenterEntity.setApproved(!costCenterEntity.isApproved());
+        costCenterRepository.save(costCenterEntity);
+
+        String message = costCenterEntity.isApproved() ? "Custo aprovado": "Custo cancelado";
+        return new MessageResponseDto(message);
     }
 
     public MessageResponseDto deleteCost(UUID id) {

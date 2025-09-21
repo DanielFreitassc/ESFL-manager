@@ -11,7 +11,7 @@ public record SupplierRequestDto(
     @CNPJ
     @NotBlank(message = "Um fornecedor precisa de um CNPJ")
     String cnpj,
-    @NotBlank(message = "Um fornecedor precisa de uma razão social")
+@NotBlank(message = "Um fornecedor precisa de uma razão social")
     String corporateName
 ) {
     

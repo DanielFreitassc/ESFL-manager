@@ -1,18 +1,18 @@
 package com.danielfreitassc.backend.models.centers;
 
 public enum CostType {
-    OPERATING("custeio"),                    
-    OPERATING_CAPITAL_FOOD("custeio capital e merenda"),         
-    OPERATING_CAPITAL("custeio capital"),             
-    PERSONNEL_CONSUMPTION_SERVICE_CAPITAL("pessoal consumo serviço e capital"); 
+    OPERATING("custeio"),
+    OPERATING_CAPITAL_FOOD("custeio capital e merenda"),
+    OPERATING_CAPITAL("custeio capital"),
+    PERSONNEL_CONSUMPTION_SERVICE_CAPITAL("pessoal consumo serviço e capital");
 
-    private String type;
+    private final String ptName;
 
-    CostType(String type) {
-        this.type = type;
+    CostType(String ptName) {
+        this.ptName = ptName;
     }
 
-    public String getType() {
-        return type;
+    public String getPtName() {
+        return ptName;
     }
 }

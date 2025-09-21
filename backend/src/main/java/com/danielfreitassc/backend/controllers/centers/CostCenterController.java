@@ -39,9 +39,14 @@ public class CostCenterController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Headers de origem faltando");
         }
 
-        boolean fromAI = origin.equalsIgnoreCase("AI");
-        System.out.println("LOG:" + fromAI);
-        return costCenterService.create(costCenterRequestDto, fromAI);
+        boolean approved = origin.equalsIgnoreCase("AI");
+        System.out.println("LOG:" + approved);
+        return costCenterService.create(costCenterRequestDto, approved);
+    }
+
+    @GetMapping("/pending")
+    public Page<CostCenterResponseDto> getForApproved(Pageable pageable) {
+        return costCenterService.getForApproved(pageable);
     }
 
     @GetMapping
@@ -57,6 +62,11 @@ public class CostCenterController {
     @PutMapping("/{id}")
     public MessageResponseDto updateCost(@PathVariable UUID id,@RequestBody @Valid CostCenterRequestDto costCenterRequestDto) {
         return costCenterService.updateCost(id, costCenterRequestDto);
+    }
+
+    @PostMapping("/approved/{id}")
+    public MessageResponseDto approvedCost(@PathVariable UUID id) {
+        return costCenterService.approvedCost(id);
     }
 
     @DeleteMapping("/{id}")

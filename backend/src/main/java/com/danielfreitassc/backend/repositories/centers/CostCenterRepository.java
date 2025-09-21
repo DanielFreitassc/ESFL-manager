@@ -10,5 +10,7 @@ import com.danielfreitassc.backend.models.centers.CostCenterEntity;
 
 public interface CostCenterRepository extends JpaRepository<CostCenterEntity, UUID> {
  
-    Page<CostCenterEntity> findByFromAIFalse(Pageable pageable);
+    Page<CostCenterEntity> findByApprovedTrue(Pageable pageable);
+
+    Page<CostCenterEntity> findByApprovedFalse(Pageable pageable);
 }

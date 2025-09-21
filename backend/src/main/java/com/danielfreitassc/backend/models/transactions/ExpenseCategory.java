@@ -8,18 +8,13 @@ public enum ExpenseCategory {
     FOOD("merenda"),
     OPERATING("custeio");
 
-    private final String value;
+    private final String ptName;
 
-    ExpenseCategory(String value) {
-        this.value = value;
+    ExpenseCategory(String ptName) {
+        this.ptName = ptName;
     }
 
-    public String getValue() {
-        return value;
-    }
-
-    @Override
-    public String toString() {
-        return value;
+    public String getPtName() {
+        return ptName;
     }
 }

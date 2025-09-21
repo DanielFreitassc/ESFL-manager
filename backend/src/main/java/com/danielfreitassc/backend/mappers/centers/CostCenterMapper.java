@@ -12,6 +12,7 @@ import com.danielfreitassc.backend.models.centers.CostCenterEntity;
 
 @Mapper(componentModel = "spring")
 public interface CostCenterMapper {
+   @Mapping(target = "type", expression = "java(costCenterEntity.getType().getPtName())")
    CostCenterResponseDto toDto(CostCenterEntity costCenterEntity);
    @Mapping(target = "id", ignore = true)
    CostCenterEntity toEntity(CostCenterRequestDto costCenterRequestDto);
