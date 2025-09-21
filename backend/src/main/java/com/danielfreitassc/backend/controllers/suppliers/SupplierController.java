@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.danielfreitassc.backend.dtos.common.MessageResponseDto;
 import com.danielfreitassc.backend.dtos.suppliers.SupplierRequestDto;
@@ -30,8 +32,13 @@ public class SupplierController {
     private final SupplierService supplierService;
 
     @PostMapping
-    public MessageResponseDto create(@RequestHeader(value = "Origin", required = false, defaultValue = "IA") String origin, @RequestBody @Valid List<SupplierRequestDto> supplierRequestDto) {
-        boolean approved = origin.equals("IA");
+    public MessageResponseDto create(@RequestHeader(value = "Origin", required = false, defaultValue = "AI") String origin, @RequestBody @Valid List<SupplierRequestDto> supplierRequestDto) {
+        
+        if(origin == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Headers de origem faltando");
+        }
+
+        boolean approved = origin.equalsIgnoreCase("AI");
         return supplierService.create(supplierRequestDto, approved);
     }
 
@@ -58,5 +65,10 @@ public class SupplierController {
     @DeleteMapping("/{id}")
     public MessageResponseDto deleteSupplier(@PathVariable UUID id) {
         return supplierService.deleteSupplier(id);
+    }
+
+    @PostMapping("/approved/{id}")
+    public MessageResponseDto approvedSupplier(@PathVariable UUID id) {
+        return supplierService.approvedSupplier(id);
     }
 }

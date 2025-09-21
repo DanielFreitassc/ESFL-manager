@@ -59,7 +59,7 @@ public class SupplierService {
         }
 
         List<SupplierEntity> suppliers = supplierMapper.toEntities(supplierRequestDtos);
-
+        System.out.println(approved);
         suppliers.forEach(supplier -> supplier.setApproved(!approved));
 
         supplierRepository.saveAll(suppliers);
@@ -100,6 +100,15 @@ public class SupplierService {
     public MessageResponseDto deleteSupplier(UUID id) {
         supplierRepository.delete(findSupplierOrThrow(id));
         return new MessageResponseDto("Fornecedor removido com sucesso");
+    }
+
+    public MessageResponseDto approvedSupplier(UUID id) {
+        SupplierEntity supplierEntity = findSupplierOrThrow(id);
+
+        supplierEntity.setApproved(!supplierEntity.isApproved());
+        supplierRepository.save(supplierEntity);
+        String message = (supplierEntity.isApproved()) ? "Fornecedor aprovado" : "Fornecedor cancelado";
+        return new MessageResponseDto(message);
     }
 
     private SupplierEntity findSupplierOrThrow(UUID id) {
