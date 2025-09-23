@@ -33,8 +33,19 @@ public class TransactionService {
     @Transactional
     public MessageResponseDto create(List<TransactionRequestDto> transactionRequestDto, boolean approved) {
         List<TransactionEntity> transactions = transactionMapper.toEntities(transactionRequestDto);
+
+        transactions.forEach(transaction -> 
+            costCenterService.findCostOrThrow(transaction.getCostCenter().getId())
+        );
+
+        transactions.forEach(transaction -> 
+            supplierService.findSupplierOrThrow(transaction.getSupplier().getId())
+        );
+
         transactions.forEach(transaction -> transaction.setApproved(!approved));
+
         transactionRepository.saveAll(transactions);
+
         return new MessageResponseDto("Transação feita com sucesso!");
     }
 
