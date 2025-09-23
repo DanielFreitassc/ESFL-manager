@@ -73,7 +73,7 @@ public class CostCenterService {
         return new MessageResponseDto("Custo removido com sucesso!");
     }
 
-    private CostCenterEntity findCostOrThrow(UUID id) {
+    public CostCenterEntity findCostOrThrow(UUID id) {
         Optional<CostCenterEntity> cost = costCenterRepository.findById(id);
         if(cost.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Custo não encontrado");

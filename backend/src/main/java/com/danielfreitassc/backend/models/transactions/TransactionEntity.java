@@ -54,4 +54,5 @@ public class TransactionEntity {
     private TransactionStatus status;
     @CreationTimestamp
     private Timestamp createdAt;
+    private boolean approved;
 }

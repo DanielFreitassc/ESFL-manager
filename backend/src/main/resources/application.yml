@@ -3,7 +3,7 @@ spring:
     name: backend
   datasource:
     url: jdbc:h2:mem:/db
-    username: admin
+    username: postgres
     password: 
   jpa:
     hibernate:

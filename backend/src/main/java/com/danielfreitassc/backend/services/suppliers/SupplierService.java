@@ -111,7 +111,7 @@ public class SupplierService {
         return new MessageResponseDto(message);
     }
 
-    private SupplierEntity findSupplierOrThrow(UUID id) {
+    public SupplierEntity findSupplierOrThrow(UUID id) {
         Optional<SupplierEntity> supplier = supplierRepository.findById(id);
         if(supplier.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Fornecedor não encontrado");
