@@ -8,3 +8,16 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
+
+api:
+ security:
+    token:
+        secret: ${JWT_SECRET:my-secret-key}
+
+user:
+    mock:
+        username: admin@admin.com
+        password: Senha12345
+
+server:
+  port: 8080
