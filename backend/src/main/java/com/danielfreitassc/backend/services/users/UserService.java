@@ -31,6 +31,10 @@ public class UserService {
 
     @Transactional
     public MessageResponseDto create(UserRequestDto userRequestDto) {
+        if(existsByEmail(userRequestDto.email())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Você já tem um cadastro");
+        }
+
         UserEntity userEntity = userMapper.toEntity(userRequestDto);
         String passwordEncoded = passwordEncoder.encode(userRequestDto.password());
         userEntity.setPassword(passwordEncoded);
@@ -45,6 +49,33 @@ public class UserService {
 
     public Page<UserResponseDto> getAllApproved(Pageable pageable) {
         return userRepository.findAllByActiveTrue(pageable).map(userMapper::toDto);
+    }
+    
+    public MessageResponseDto update(UUID id, UserRequestDto userRequestDto) {
+        UserEntity userEntity = findUserOrThrow(id);
+
+        if (userRequestDto.email() != null && !userRequestDto.email().isBlank()) {
+            if (userRepository.existsByEmailAndIdNot(userRequestDto.email(), id)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Este email já está em uso por outro usuário");
+            }
+            userEntity.setEmail(userRequestDto.email());
+        }
+
+        if (userRequestDto.name() != null && !userRequestDto.name().isBlank()) {
+            userEntity.setName(userRequestDto.name());
+        }
+
+        if (userRequestDto.password() != null && !userRequestDto.password().isBlank()) {
+            userEntity.setPassword(passwordEncoder.encode(userRequestDto.password()));
+        }
+
+        userRepository.save(userEntity);
+        return new MessageResponseDto("Usuário atualizado com sucesso");
+    }
+
+    public MessageResponseDto remove(UUID id) {
+        userRepository.delete(findUserOrThrow(id));
+        return new MessageResponseDto("Usuário removido com sucesso");
     }
 
     public MessageResponseDto approved(UUID id) {

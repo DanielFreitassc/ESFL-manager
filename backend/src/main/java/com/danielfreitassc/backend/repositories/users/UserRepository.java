@@ -21,4 +21,6 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID> {
 
     @Query("SELECT COUNT(u) FROM UserEntity u WHERE u.role = :role")
     long countByRole(UserRole role);
+
+    boolean existsByEmailAndIdNot(String email, UUID id);
 }
