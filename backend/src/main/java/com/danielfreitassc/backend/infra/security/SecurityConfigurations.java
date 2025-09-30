@@ -1,9 +1,5 @@
 package com.danielfreitassc.backend.infra.security;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -18,8 +14,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -45,7 +41,9 @@ public class SecurityConfigurations {
                 .authorizeHttpRequests(authorize -> authorize
 
                 .requestMatchers(HttpMethod.POST,"/users").permitAll()
+                .requestMatchers(HttpMethod.POST,"/users/{id}/active").hasAnyRole("ADMIN")
                 .requestMatchers(HttpMethod.GET,"/users").hasAnyRole("ADMIN")
+                .requestMatchers(HttpMethod.GET,"/users/pending").hasAnyRole("ADMIN")
                 .requestMatchers(HttpMethod.PATCH,"/users/{id}/activate").hasAnyRole("ADMIN")
                 .requestMatchers(HttpMethod.GET,"/users/inactives").hasAnyRole("ADMIN")
                 .requestMatchers(HttpMethod.GET,"/users/{id}").hasAnyRole("ADMIN")
@@ -62,56 +60,22 @@ public class SecurityConfigurations {
     }
 
     @Bean
-        public CorsConfigurationSource corsConfigurationSource() {
-            return new CorsConfigurationSource() {
-                @Override
-                public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
-                    CorsConfiguration configuration = new CorsConfiguration();
-                    configuration.setAllowCredentials(true);
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowCredentials(true);
+        // Trocar pelo ip da maquina que vai rodar o front
+        configuration.addAllowedOrigin("http://localhost:3000");
+        configuration.addAllowedMethod(HttpMethod.POST);
+        configuration.addAllowedMethod(HttpMethod.GET);
+        configuration.addAllowedMethod(HttpMethod.PUT);
+        configuration.addAllowedMethod(HttpMethod.PATCH);
+        configuration.addAllowedMethod(HttpMethod.DELETE);
+        configuration.addAllowedHeader("*"); 
 
-                    List<String> fixedAllowedOrigins = Arrays.asList(
-                    "http://localhost:19000",
-                        "http://localhost:19002",
-                        "http://localhost:3000"
-                    );
-                    
-                    String baseDomain = ".nextsyntax.com"; 
-
-                    String originHeader = request.getHeader("Origin");
-                    log.debug(">>> CORS - Origin Header recebido: {}", originHeader);
-
-                    if (originHeader != null) {
-                        if (fixedAllowedOrigins.contains(originHeader)) {
-                            configuration.setAllowedOrigins(Collections.singletonList(originHeader));
-                            log.debug(">>> CORS - Origin '{}' permitido por lista fixa.", originHeader);
-                        } 
-                        else if (originHeader.endsWith(baseDomain) || originHeader.endsWith(baseDomain + ":3000")) {
-                            configuration.setAllowedOrigins(Collections.singletonList(originHeader));
-                            log.debug(">>> CORS - Origin '{}' permitido por padrão de subdomínio.", originHeader);
-                        } else {
-                            configuration.setAllowedOrigins(Collections.emptyList()); 
-                            log.warn(">>> CORS - Origin '{}' NÃO permitido por nenhuma regra.", originHeader);
-                        }
-                    } else {
-                        configuration.setAllowedOrigins(Collections.emptyList()); 
-                        log.warn(">>> CORS - Cabeçalho Origin ausente. Requisição será rejeitada por CORS.");
-                    }
-
-                    configuration.setAllowedMethods(Arrays.asList(
-                        HttpMethod.POST.name(), 
-                        HttpMethod.GET.name(), 
-                        HttpMethod.PUT.name(), 
-                        HttpMethod.PATCH.name(), 
-                        HttpMethod.DELETE.name(),
-                        HttpMethod.OPTIONS.name() 
-                    ));
-                    configuration.setAllowedHeaders(Collections.singletonList("*")); 
-                    configuration.setMaxAge(3600L); 
-
-                    return configuration;
-                }
-            };
-        }
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
