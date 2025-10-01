@@ -42,7 +42,7 @@ public class UserController {
         return userService.getToApproved(pageable);
     }
     
-    @PostMapping("/{id}/active")
+    @PostMapping("/{id}/activate")
     public MessageResponseDto approved(@PathVariable UUID id) {
         return userService.approved(id);
     }

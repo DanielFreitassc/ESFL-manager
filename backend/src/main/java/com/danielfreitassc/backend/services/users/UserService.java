@@ -74,20 +74,38 @@ public class UserService {
     }
 
     public MessageResponseDto remove(UUID id) {
-        userRepository.delete(findUserOrThrow(id));
+        UserEntity user = findUserOrThrow(id);
+
+        if (user.getRole() == UserRole.ADMIN) {
+            long adminCount = userRepository.countByRole(UserRole.ADMIN);
+            if (adminCount <= 1) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Não é permitido remover o único administrador restante.");
+            }
+        }
+
+        userRepository.delete(user);
         return new MessageResponseDto("Usuário removido com sucesso");
     }
 
     public MessageResponseDto approved(UUID id) {
         UserEntity userEntity = findUserOrThrow(id);
 
-        userEntity.setActive(!userEntity.isActive());
+        if (userEntity.getRole() == UserRole.ADMIN && userEntity.isActive()) {
+            long adminCount = userRepository.countByRole(UserRole.ADMIN);
+            if (adminCount <= 1) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Não é permitido desativar o único administrador restante.");
+            }
+        }
 
+        userEntity.setActive(!userEntity.isActive());
         userRepository.save(userEntity);
 
         String message = (userEntity.isActive()) ? "Usuário aprovado" : "Usuário desaprovado";
         return new MessageResponseDto(message);
     }
+
 
     public boolean existsByEmail(String email) {
         return userRepository.findByEmail(email).isPresent();

@@ -23,4 +23,5 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID> {
     long countByRole(UserRole role);
 
     boolean existsByEmailAndIdNot(String email, UUID id);
+    
 }
