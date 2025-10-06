@@ -43,10 +43,9 @@ export function AuthForm() {
 
       setToken(response.token)
 
-      router.push("/dashboard")
-      
-      router.refresh() 
-      
+      router.push("/home")
+
+      router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao fazer login")
     } finally {

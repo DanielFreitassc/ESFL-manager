@@ -5,7 +5,8 @@ import { GeistMono } from "geist/font/mono"
 import { Analytics } from "@vercel/analytics/next"
 import { ToastContainer } from "react-toastify"
 import { Suspense } from "react"
-import "./global.css"
+import "@/app/global.css"
+import "react-toastify/dist/ReactToastify.css"
 
 export const metadata: Metadata = {
   title: "v0 App",

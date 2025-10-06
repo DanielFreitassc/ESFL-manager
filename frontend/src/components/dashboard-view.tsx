@@ -205,7 +205,7 @@ export function DashboardView() {
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold tracking-tight">Gastos por Categoria</h2>
           <Button asChild>
-            <Link href="/centros-custo">
+            <Link href="/home/centros-custo">
               <DollarSign className="mr-2 h-4 w-4" />
               Ver Centros de Custo
             </Link>
