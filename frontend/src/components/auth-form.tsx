@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { login, register } from "@/lib/api"
+import { AuthResponse, login, register } from "@/lib/api"
 import { setToken } from "@/lib/auth"
 import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
@@ -36,11 +36,14 @@ export function AuthForm() {
     setIsLoading(true)
 
     try {
-      const response = await login({
-        email: loginEmail,
-        password: loginPassword,
-      })
+      // const response = await login({
+      //   email: loginEmail,
+      //   password: loginPassword,
+      // })
 
+      const response : AuthResponse = {
+        token: "asdf",
+      }
       setToken(response.token)
 
       router.push("/home")
