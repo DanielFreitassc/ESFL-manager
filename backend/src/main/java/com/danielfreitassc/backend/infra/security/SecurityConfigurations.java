@@ -45,6 +45,19 @@ public class SecurityConfigurations {
                 .requestMatchers(HttpMethod.GET,"/costs/{id}").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT,"/costs/{id}").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE,"/costs/{id}").hasRole("ADMIN")
+                
+                .requestMatchers(HttpMethod.POST,"/transactions").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET,"/transactions").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET,"/transactions/{id}").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT,"/transactions/{id}").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE,"/transactions/{id}").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET,"/transactions/income").hasRole("ADMIN")
+
+                .requestMatchers(HttpMethod.POST,"/suppliers").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET,"/suppliers").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET,"/suppliers/{id}").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT,"/transactions/{id}").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE,"/suppliers/{id}").hasRole("ADMIN")
 
                 .requestMatchers(HttpMethod.POST,"/users").permitAll()
                 .requestMatchers(HttpMethod.POST,"/users/{id}/activate").hasAnyRole("ADMIN")

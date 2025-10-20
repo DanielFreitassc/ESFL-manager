@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.danielfreitassc.backend.dtos.common.MessageResponseDto;
 import com.danielfreitassc.backend.dtos.transactions.TransactionRequestDto;
 import com.danielfreitassc.backend.dtos.transactions.TransactionResponseDto;
+import com.danielfreitassc.backend.dtos.transactions.TransactionViewDto;
 import com.danielfreitassc.backend.services.transactions.TransactionService;
 
 import jakarta.validation.Valid;
@@ -30,9 +31,13 @@ public class TransactionController {
     private final TransactionService transactionService;
     
     @PostMapping
-    public MessageResponseDto create(@RequestHeader(value = "Origin", required = false, defaultValue = "AI") String origin,@RequestBody @Valid List<TransactionRequestDto> transactionRequestDto) {
-        boolean approved = origin.equals("AI");
-        return transactionService.create(transactionRequestDto, approved);
+    public MessageResponseDto create(@RequestBody @Valid TransactionRequestDto transactionRequestDto) {
+        return transactionService.create(transactionRequestDto);
+    }
+
+    @GetMapping("/income")
+    public TransactionViewDto getToIncome() {
+        return transactionService.getToIncome();
     }
 
     @GetMapping

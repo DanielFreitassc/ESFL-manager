@@ -1,5 +1,6 @@
 package com.danielfreitassc.backend.services.transactions;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -13,8 +14,10 @@ import org.springframework.web.server.ResponseStatusException;
 import com.danielfreitassc.backend.dtos.common.MessageResponseDto;
 import com.danielfreitassc.backend.dtos.transactions.TransactionRequestDto;
 import com.danielfreitassc.backend.dtos.transactions.TransactionResponseDto;
+import com.danielfreitassc.backend.dtos.transactions.TransactionViewDto;
 import com.danielfreitassc.backend.mappers.transactions.TransactionMapper;
 import com.danielfreitassc.backend.models.transactions.TransactionEntity;
+import com.danielfreitassc.backend.models.transactions.TransactionType;
 import com.danielfreitassc.backend.repositories.transactions.TransactionRepository;
 import com.danielfreitassc.backend.services.centers.CostCenterService;
 import com.danielfreitassc.backend.services.suppliers.SupplierService;
@@ -31,22 +34,27 @@ public class TransactionService {
     private final SupplierService supplierService;
 
     @Transactional
-    public MessageResponseDto create(List<TransactionRequestDto> transactionRequestDto, boolean approved) {
-        List<TransactionEntity> transactions = transactionMapper.toEntities(transactionRequestDto);
+    public MessageResponseDto create(TransactionRequestDto transactionRequestDto) {
+        TransactionEntity transaction = transactionMapper.toEntity(transactionRequestDto);
 
-        transactions.forEach(transaction -> 
-            costCenterService.findCostOrThrow(transaction.getCostCenter().getId())
-        );
+        costCenterService.findCostOrThrow(transaction.getCostCenter().getId());
 
-        transactions.forEach(transaction -> 
-            supplierService.findSupplierOrThrow(transaction.getSupplier().getId())
-        );
+        supplierService.findSupplierOrThrow(transaction.getSupplier().getId());
 
-        transactions.forEach(transaction -> transaction.setApproved(!approved));
+        transaction.setApproved(true);
 
-        transactionRepository.saveAll(transactions);
+        transactionRepository.save(transaction);
 
         return new MessageResponseDto("Transação feita com sucesso!");
+    }
+
+    public TransactionViewDto getToIncome() {
+        List<TransactionEntity> transactionEntities = transactionRepository.findAllByType(TransactionType.INCOME);
+        
+        BigDecimal totalAmount  = transactionEntities.stream().map(TransactionEntity::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        
+        return new TransactionViewDto(TransactionType.INCOME.getPtName(),totalAmount);
     }
 
     public Page<TransactionResponseDto> getAllApproved(Pageable pageable) {

@@ -30,44 +30,14 @@ public class SupplierService {
     private final SupplierMapper supplierMapper; 
 
     @Transactional
-    public MessageResponseDto create(List<SupplierRequestDto> supplierRequestDtos, boolean approved) {
-        List<String> cnpjs = supplierRequestDtos.stream()
-                .map(SupplierRequestDto::cnpj)
-                .toList();
+    public MessageResponseDto create(SupplierRequestDto supplierRequestDtos) {
+        
+        findCnpj(supplierRequestDtos.cnpj());
+        
+        supplierRepository.save(supplierMapper.toEntity(supplierRequestDtos));
 
-        Set<String> duplicadosInternos = cnpjs.stream()
-                .filter(c -> Collections.frequency(cnpjs, c) > 1)
-                .collect(Collectors.toSet());
-
-        if (!duplicadosInternos.isEmpty()) {
-            throw new ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                "CNPJs duplicados: " + String.join(", ", duplicadosInternos)
-            );
-        }
-
-        List<SupplierEntity> existentes = supplierRepository.findAllByCnpjIn(cnpjs);
-        if (!existentes.isEmpty()) {
-            List<String> duplicadosBanco = existentes.stream()
-                    .map(SupplierEntity::getCnpj)
-                    .toList();
-
-            throw new ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                "CNPJs já cadastrados: " + String.join(", ", duplicadosBanco)
-            );
-        }
-
-        List<SupplierEntity> suppliers = supplierMapper.toEntities(supplierRequestDtos);
-        System.out.println(approved);
-        suppliers.forEach(supplier -> supplier.setApproved(!approved));
-
-        supplierRepository.saveAll(suppliers);
-
-        return new MessageResponseDto("Fornecedor(es) cadastrados com sucesso!");
+        return new MessageResponseDto("Fornecedor cadastrados com sucesso!");
     }
-
-
 
     public Page<SupplierResponseDto> getSuppliers(Pageable pageable) {
         return supplierRepository.findByApprovedTrue(pageable).map(supplierMapper::toDto);
@@ -80,16 +50,13 @@ public class SupplierService {
     @Transactional
     public MessageResponseDto update(UUID id, SupplierRequestDto supplierRequestDto) {
         SupplierEntity supplierEntity = findSupplierOrThrow(id);
+        findCnpj(supplierRequestDto.cnpj());
 
-        if (!supplierEntity.getCnpj().equals(supplierRequestDto.cnpj())) {
-            Optional<SupplierEntity> existing = supplierRepository.findByCnpj(supplierRequestDto.cnpj());
-            if (existing.isPresent() && !existing.get().getId().equals(id)) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "CNPJ já cadastrado");
-            }
-        }
 
         supplierMapper.toUpdate(supplierRequestDto, supplierEntity);
+
         supplierRepository.save(supplierEntity);
+
         return new MessageResponseDto("Fornecedor atualizado");
     }
 
@@ -109,6 +76,12 @@ public class SupplierService {
         supplierRepository.save(supplierEntity);
         String message = (supplierEntity.isApproved()) ? "Fornecedor aprovado" : "Fornecedor cancelado";
         return new MessageResponseDto(message);
+    }
+
+    public void findCnpj(String cnpj) {
+        if(supplierRepository.findByCnpj(cnpj).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"CNPJ já cadastrado");
+        }
     }
 
     public SupplierEntity findSupplierOrThrow(UUID id) {

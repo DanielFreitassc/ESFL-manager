@@ -32,14 +32,9 @@ public class SupplierController {
     private final SupplierService supplierService;
 
     @PostMapping
-    public MessageResponseDto create(@RequestHeader(value = "Origin", required = false, defaultValue = "AI") String origin, @RequestBody @Valid List<SupplierRequestDto> supplierRequestDto) {
+    public MessageResponseDto create(@RequestBody @Valid SupplierRequestDto supplierRequestDto) {
         
-        if(origin == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Headers de origem faltando");
-        }
-
-        boolean approved = origin.equalsIgnoreCase("AI");
-        return supplierService.create(supplierRequestDto, approved);
+        return supplierService.create(supplierRequestDto);
     }
 
     @GetMapping
