@@ -28,13 +28,13 @@ public class CostCenterService {
     private final CostCenterMapper costCenterMapper;
 
     @Transactional
-    public MessageResponseDto create(List<CostCenterRequestDto> costCenterRequestDto, boolean approved) {
-       List<CostCenterEntity> costCenterEntities = costCenterMapper.toEntityList(costCenterRequestDto);
+    public MessageResponseDto create(CostCenterRequestDto costCenterRequestDto) {
+        CostCenterEntity costCenterEntity = costCenterMapper.toEntity(costCenterRequestDto);
+        costCenterEntity.setApproved(true);
 
-       costCenterEntities.forEach(entity -> entity.setApproved(!approved));
+        costCenterRepository.save(costCenterEntity);
 
-       costCenterRepository.saveAll(costCenterEntities);
-       return new MessageResponseDto("Custo cadastrado com sucesso!");
+        return new MessageResponseDto("Custo cadastrado com sucesso!");
     }
      
     public Page<CostCenterResponseDto> getCosts(Pageable pageable) {

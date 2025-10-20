@@ -5,7 +5,6 @@ import { toast } from "react-toastify"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { getPendingUsers, activateUser, type User, type PaginatedResponse } from "@/lib/api"
-import { getToken } from "@/lib/auth"
 import { Loader2, UserCheck, ChevronLeft, ChevronRight } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 
@@ -22,13 +21,7 @@ export default function PendingUsersPage() {
     setIsLoading(true)
 
     try {
-      const token = getToken()
-      if (!token) {
-        toast.error("Token não encontrado")
-        return
-      }
-
-      const data: PaginatedResponse<User> = await getPendingUsers(token, page, pageSize)
+      const data: PaginatedResponse<User> = await getPendingUsers(page, pageSize)
       setUsers(data.content)
       setCurrentPage(data.number)
       setTotalPages(data.totalPages)
@@ -48,13 +41,7 @@ export default function PendingUsersPage() {
     setActivatingId(id)
 
     try {
-      const token = getToken()
-      if (!token) {
-        toast.error("Token não encontrado")
-        return
-      }
-
-      await activateUser(id, token)
+      await activateUser(id)
       toast.success("Usuário aprovado com sucesso!")
       await loadUsers(currentPage)
     } catch (err) {

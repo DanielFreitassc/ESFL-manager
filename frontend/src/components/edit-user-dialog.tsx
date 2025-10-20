@@ -16,7 +16,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { updateUser, type User } from "@/lib/api"
-import { getToken } from "@/lib/auth"
 import { Loader2, AlertCircle } from "lucide-react"
 
 interface EditUserDialogProps {
@@ -44,19 +43,13 @@ export function EditUserDialog({ user, onClose, onSuccess }: EditUserDialogProps
     setIsLoading(true)
 
     try {
-      const token = getToken()
-      if (!token) {
-        setError("Token não encontrado")
-        return
-      }
-
       const payload: { name?: string; email?: string; password?: string } = {}
 
       if (name !== user.name) payload.name = name
       if (email !== user.email) payload.email = email
       if (password) payload.password = password
 
-      await updateUser(user.id, payload, token)
+      await updateUser(user.id, payload)
       onSuccess()
       onClose()
     } catch (err) {

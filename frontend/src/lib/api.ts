@@ -1,4 +1,5 @@
 import axios from "axios"
+import Cookies from "js-cookie"
 
 const API_BASE_URL = "http://localhost:8080"
 
@@ -8,6 +9,19 @@ const api = axios.create({
     "Content-Type": "application/json",
   },
 })
+
+api.interceptors.request.use(
+  (config) => {
+    const token = Cookies.get("auth_token")
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+    return config
+  },
+  (error) => {
+    return Promise.reject(error)
+  },
+)
 
 export interface User {
   id: string
@@ -65,12 +79,9 @@ export async function register(payload: RegisterPayload): Promise<AuthResponse> 
 }
 
 // Users API
-export async function getPendingUsers(token: string, page = 0, size = 20): Promise<PaginatedResponse<User>> {
+export async function getPendingUsers(page = 0, size = 20): Promise<PaginatedResponse<User>> {
   try {
     const { data } = await api.get<PaginatedResponse<User>>("/users/pending", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
       params: {
         page,
         size,
@@ -85,12 +96,9 @@ export async function getPendingUsers(token: string, page = 0, size = 20): Promi
   }
 }
 
-export async function getActiveUsers(token: string, page = 0, size = 20): Promise<PaginatedResponse<User>> {
+export async function getActiveUsers(page = 0, size = 20): Promise<PaginatedResponse<User>> {
   try {
     const { data } = await api.get<PaginatedResponse<User>>("/users", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
       params: {
         page,
         size,
@@ -124,13 +132,9 @@ export interface PaginatedResponse<T> {
   empty: boolean
 }
 
-export async function activateUser(id: string, token: string): Promise<void> {
+export async function activateUser(id: string): Promise<void> {
   try {
-    await api.post(`/users/${id}/activate`, null, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
+    await api.post(`/users/${id}/activate`)
   } catch (error) {
     if (axios.isAxiosError(error) && error.response?.data?.message) {
       throw new Error(error.response.data.message)
@@ -139,13 +143,9 @@ export async function activateUser(id: string, token: string): Promise<void> {
   }
 }
 
-export async function updateUser(id: string, payload: Partial<RegisterPayload>, token: string): Promise<User> {
+export async function updateUser(id: string, payload: Partial<RegisterPayload>): Promise<User> {
   try {
-    const { data } = await api.patch<User>(`/users/${id}`, payload, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
+    const { data } = await api.patch<User>(`/users/${id}`, payload)
     return data
   } catch (error) {
     if (axios.isAxiosError(error) && error.response?.data?.message) {
@@ -155,17 +155,85 @@ export async function updateUser(id: string, payload: Partial<RegisterPayload>, 
   }
 }
 
-export async function deleteUser(id: string, token: string): Promise<void> {
+export async function deleteUser(id: string): Promise<void> {
   try {
-    await api.delete(`/users/${id}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
+    await api.delete(`/users/${id}`)
   } catch (error) {
     if (axios.isAxiosError(error) && error.response?.data?.message) {
       throw new Error(error.response.data.message)
     }
     throw new Error("Erro ao deletar usuário")
+  }
+}
+
+// Cost Center API
+export interface CostCenter {
+  id?: string
+  name: string
+  type: string
+  select?: string // Technical value used for API updates
+}
+
+export async function getCostCenters(page = 0, size = 10): Promise<PaginatedResponse<CostCenter>> {
+  try {
+    const { data } = await api.get<PaginatedResponse<CostCenter>>("/costs", {
+      params: {
+        page,
+        size,
+      },
+    })
+    return data
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw new Error("Erro ao buscar centros de custo")
+  }
+}
+
+export async function createCostCenter(payload: CostCenter): Promise<CostCenter> {
+  try {
+    const { data } = await api.post<CostCenter>("/costs", payload)
+    return data
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw new Error("Erro ao criar centro de custo")
+  }
+}
+
+export async function getCostCenter(id: string): Promise<CostCenter> {
+  try {
+    const { data } = await api.get<CostCenter>(`/costs/${id}`)
+    return data
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw new Error("Erro ao buscar centro de custo")
+  }
+}
+
+export async function updateCostCenter(id: string, payload: { name: string; type: string }): Promise<CostCenter> {
+  try {
+    const { data } = await api.put<CostCenter>(`/costs/${id}`, payload)
+    return data
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw new Error("Erro ao atualizar centro de custo")
+  }
+}
+
+export async function deleteCostCenter(id: string): Promise<void> {
+  try {
+    await api.delete(`/costs/${id}`)
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw new Error("Erro ao deletar centro de custo")
   }
 }

@@ -8,17 +8,15 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { AuthResponse, login, register } from "@/lib/api"
+import { login, register } from "@/lib/api"
 import { setToken } from "@/lib/auth"
 import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
+import { toast } from "react-toastify"
 
 export function AuthForm() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
 
   // Login state
   const [loginEmail, setLoginEmail] = useState("")
@@ -31,26 +29,28 @@ export function AuthForm() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError(null)
-    setSuccess(null)
     setIsLoading(true)
 
     try {
-      // const response = await login({
-      //   email: loginEmail,
-      //   password: loginPassword,
-      // })
+      const response = await login({
+        email: loginEmail,
+        password: loginPassword,
+      })
 
-      const response : AuthResponse = {
-        token: "asdf",
-      }
+      console.log("[v0] Login response:", response)
+
       setToken(response.token)
 
-      router.push("/home")
+      console.log("[v0] Token stored, redirecting to /home")
 
+      toast.success("Login realizado com sucesso!")
+
+      router.push("/home")
       router.refresh()
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao fazer login")
+      console.error("[v0] Login error:", err)
+      const errorMessage = err instanceof Error ? err.message : "Erro ao fazer login"
+      toast.error(errorMessage)
     } finally {
       setIsLoading(false)
     }
@@ -58,11 +58,9 @@ export function AuthForm() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError(null)
-    setSuccess(null)
 
     if (registerPassword.length < 6) {
-      setError("A senha deve ter no mínimo 6 caracteres")
+      toast.error("A senha deve ter no mínimo 6 caracteres")
       return
     }
 
@@ -75,12 +73,13 @@ export function AuthForm() {
         password: registerPassword,
       })
 
-      setSuccess("Cadastro realizado com sucesso! Aguarde aprovação para fazer login.")
+      toast.success("Cadastro realizado com sucesso! Aguarde aprovação para fazer login.")
       setRegisterName("")
       setRegisterEmail("")
       setRegisterPassword("")
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao registrar")
+      const errorMessage = err instanceof Error ? err.message : "Erro ao registrar"
+      toast.error(errorMessage)
     } finally {
       setIsLoading(false)
     }
@@ -181,18 +180,6 @@ export function AuthForm() {
               </form>
             </TabsContent>
           </Tabs>
-
-          {error && (
-            <Alert variant="destructive" className="mt-4">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-
-          {success && (
-            <Alert className="mt-4 border-green-500 bg-green-50 text-green-900 dark:bg-green-950 dark:text-green-100">
-              <AlertDescription>{success}</AlertDescription>
-            </Alert>
-          )}
         </CardContent>
       </Card>
     </div>

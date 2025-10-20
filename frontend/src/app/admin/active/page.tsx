@@ -5,7 +5,6 @@ import { toast } from "react-toastify"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { getActiveUsers, activateUser, deleteUser, type User, type PaginatedResponse } from "@/lib/api"
-import { getToken } from "@/lib/auth"
 import { Loader2, Users, Trash2, Edit, UserX, ChevronLeft, ChevronRight } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { EditUserDialog } from "@/components/edit-user-dialog"
@@ -36,13 +35,7 @@ export default function ActiveUsersPage() {
     setIsLoading(true)
 
     try {
-      const token = getToken()
-      if (!token) {
-        toast.error("Token não encontrado")
-        return
-      }
-
-      const data: PaginatedResponse<User> = await getActiveUsers(token, page, pageSize)
+      const data: PaginatedResponse<User> = await getActiveUsers(page, pageSize)
       setUsers(data.content)
       setCurrentPage(data.number)
       setTotalPages(data.totalPages)
@@ -62,13 +55,7 @@ export default function ActiveUsersPage() {
     setDeactivatingId(id)
 
     try {
-      const token = getToken()
-      if (!token) {
-        toast.error("Token não encontrado")
-        return
-      }
-
-      await activateUser(id, token)
+      await activateUser(id)
       toast.success("Usuário desativado com sucesso!")
       await loadUsers(currentPage)
     } catch (err) {
@@ -84,13 +71,7 @@ export default function ActiveUsersPage() {
     setDeletingId(userToDelete.id)
 
     try {
-      const token = getToken()
-      if (!token) {
-        toast.error("Token não encontrado")
-        return
-      }
-
-      await deleteUser(userToDelete.id, token)
+      await deleteUser(userToDelete.id)
       toast.success("Usuário deletado com sucesso!")
       setUserToDelete(null)
       await loadUsers(currentPage)
