@@ -16,4 +16,5 @@ public interface SupplierRepository extends JpaRepository<SupplierEntity, UUID> 
 
     Optional<SupplierEntity> findByCnpj(String cnpj);
     List<SupplierEntity> findAllByCnpjIn(List<String> cnpjs);
+    boolean findCnpj(String cnpj);
 }
