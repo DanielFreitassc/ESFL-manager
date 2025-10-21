@@ -40,6 +40,11 @@ public class TransactionController {
         return transactionService.getToIncome();
     }
 
+    @GetMapping("/expense")
+    public TransactionViewDto getToExpense()  {
+        return transactionService.getToExpense();
+    }
+
     @GetMapping
     public Page<TransactionResponseDto> getAll(Pageable pageable) {
         return transactionService.getAll(pageable);
@@ -50,7 +55,7 @@ public class TransactionController {
         return transactionService.getTransaction(id);
     }
 
-   
+
     @PutMapping("/{id}")
     public MessageResponseDto updateTransaction(@PathVariable UUID id,@RequestBody @Valid TransactionRequestDto transactionRequestDto) {
         return transactionService.updateTransaction(id, transactionRequestDto);

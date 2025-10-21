@@ -55,6 +55,14 @@ public class TransactionService {
         return new TransactionViewDto(TransactionType.INCOME.getPtName(),totalAmount);
     }
 
+    public TransactionViewDto getToExpense() {
+        List<TransactionEntity> transactionEntities = transactionRepository.findAllByType(TransactionType.EXPENSE);
+
+        BigDecimal totalAmount = transactionEntities.stream().map(TransactionEntity::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return new TransactionViewDto(TransactionType.EXPENSE.getPtName(),totalAmount);
+    }
+
     public Page<TransactionResponseDto> getAll(Pageable pageable) {
         return transactionRepository.findAll(pageable).map(transactionMapper::toDto);
     }
