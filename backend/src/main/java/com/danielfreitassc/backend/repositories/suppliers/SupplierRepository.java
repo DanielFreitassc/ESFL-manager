@@ -15,6 +15,6 @@ public interface SupplierRepository extends JpaRepository<SupplierEntity, UUID> 
     Page<SupplierEntity> findByApprovedTrue(Pageable pageable);
 
     Optional<SupplierEntity> findByCnpj(String cnpj);
+
     List<SupplierEntity> findAllByCnpjIn(List<String> cnpjs);
-    boolean findCnpj(String cnpj);
 }

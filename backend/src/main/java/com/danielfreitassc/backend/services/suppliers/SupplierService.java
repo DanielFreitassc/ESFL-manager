@@ -31,14 +31,13 @@ public class SupplierService {
 
     @Transactional
     public MessageResponseDto create(SupplierRequestDto supplierRequestDtos) {
+        
         findCnpj(supplierRequestDtos.cnpj());
-
+        
         supplierRepository.save(supplierMapper.toEntity(supplierRequestDtos));
 
         return new MessageResponseDto("Fornecedor cadastrados com sucesso!");
     }
-
-
 
     public Page<SupplierResponseDto> getSuppliers(Pageable pageable) {
         return supplierRepository.findByApprovedTrue(pageable).map(supplierMapper::toDto);
@@ -51,16 +50,13 @@ public class SupplierService {
     @Transactional
     public MessageResponseDto update(UUID id, SupplierRequestDto supplierRequestDto) {
         SupplierEntity supplierEntity = findSupplierOrThrow(id);
+        findCnpj(supplierRequestDto.cnpj());
 
-        if (!supplierEntity.getCnpj().equals(supplierRequestDto.cnpj())) {
-            Optional<SupplierEntity> existing = supplierRepository.findByCnpj(supplierRequestDto.cnpj());
-            if (existing.isPresent() && !existing.get().getId().equals(id)) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "CNPJ já cadastrado");
-            }
-        }
 
         supplierMapper.toUpdate(supplierRequestDto, supplierEntity);
+
         supplierRepository.save(supplierEntity);
+
         return new MessageResponseDto("Fornecedor atualizado");
     }
 
@@ -83,7 +79,7 @@ public class SupplierService {
     }
 
     public void findCnpj(String cnpj) {
-        if(supplierRepository.findCnpj(cnpj)) {
+        if(supplierRepository.findByCnpj(cnpj).isPresent()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"CNPJ já cadastrado");
         }
     }
