@@ -63,6 +63,17 @@ public class TransactionService {
         return new TransactionViewDto(TransactionType.EXPENSE.getPtName(),totalAmount);
     }
 
+    public TransactionViewDto getRealAmount() {
+        List<TransactionEntity> income = transactionRepository.findAllByType(TransactionType.INCOME);
+        List<TransactionEntity> expense = transactionRepository.findAllByType(TransactionType.EXPENSE);
+
+        BigDecimal amountIncome =  income.stream().map(TransactionEntity::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal amountExpense =  expense.stream().map(TransactionEntity::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal amount = amountIncome.subtract(amountExpense);
+        return new TransactionViewDto("Saldo real", amount);
+    }
+
     public Page<TransactionResponseDto> getAll(Pageable pageable) {
         return transactionRepository.findAll(pageable).map(transactionMapper::toDto);
     }

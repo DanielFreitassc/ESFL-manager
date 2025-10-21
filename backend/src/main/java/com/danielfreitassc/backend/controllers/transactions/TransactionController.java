@@ -45,6 +45,11 @@ public class TransactionController {
         return transactionService.getToExpense();
     }
 
+    @GetMapping("/real-amount")
+    public TransactionViewDto getRealAmount() {
+        return transactionService.getRealAmount();
+    }
+
     @GetMapping
     public Page<TransactionResponseDto> getAll(Pageable pageable) {
         return transactionService.getAll(pageable);
