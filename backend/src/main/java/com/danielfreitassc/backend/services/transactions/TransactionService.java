@@ -41,8 +41,6 @@ public class TransactionService {
 
         supplierService.findSupplierOrThrow(transaction.getSupplier().getId());
 
-        transaction.setApproved(true);
-
         transactionRepository.save(transaction);
 
         return new MessageResponseDto("Transação feita com sucesso!");
@@ -57,20 +55,8 @@ public class TransactionService {
         return new TransactionViewDto(TransactionType.INCOME.getPtName(),totalAmount);
     }
 
-    public Page<TransactionResponseDto> getAllApproved(Pageable pageable) {
-        return transactionRepository.findByApprovedTrue(pageable).map(transactionMapper::toDto);
-    }
-
-    public Page<TransactionResponseDto> getForApproved(Pageable pageable) {
-        return transactionRepository.findByApprovedFalse(pageable).map(transactionMapper::toDto);
-    }
-
-    public MessageResponseDto approved(UUID id) {
-        TransactionEntity transactionEntity = findTransactionOrThrow(id);
-        transactionEntity.setApproved(!transactionEntity.isApproved());
-        transactionRepository.save(transactionEntity);
-        String message = (transactionEntity.isApproved()) ? "Transação aprovada" : "Transação recusada";
-        return new MessageResponseDto(message);
+    public Page<TransactionResponseDto> getAll(Pageable pageable) {
+        return transactionRepository.findAll(pageable).map(transactionMapper::toDto);
     }
 
     public TransactionResponseDto getTransaction(UUID id) {

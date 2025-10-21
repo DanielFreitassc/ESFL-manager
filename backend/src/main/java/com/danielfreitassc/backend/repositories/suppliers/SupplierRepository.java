@@ -4,16 +4,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.danielfreitassc.backend.models.suppliers.SupplierEntity;
 
 public interface SupplierRepository extends JpaRepository<SupplierEntity, UUID> {
-    Page<SupplierEntity> findByApprovedFalse(Pageable pageable);
-    Page<SupplierEntity> findByApprovedTrue(Pageable pageable);
-
     Optional<SupplierEntity> findByCnpj(String cnpj);
 
     List<SupplierEntity> findAllByCnpjIn(List<String> cnpjs);

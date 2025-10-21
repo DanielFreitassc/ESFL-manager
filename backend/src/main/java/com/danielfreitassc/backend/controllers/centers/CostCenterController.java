@@ -33,11 +33,6 @@ public class CostCenterController {
         return costCenterService.create(costCenterRequestDto);
     }
 
-    @GetMapping("/pending")
-    public Page<CostCenterResponseDto> getForApproved(Pageable pageable) {
-        return costCenterService.getForApproved(pageable);
-    }
-
     @GetMapping
     public Page<CostCenterResponseDto> getCosts(Pageable pageable) {
         return costCenterService.getCosts(pageable);
@@ -51,11 +46,6 @@ public class CostCenterController {
     @PutMapping("/{id}")
     public MessageResponseDto updateCost(@PathVariable UUID id,@RequestBody @Valid CostCenterRequestDto costCenterRequestDto) {
         return costCenterService.updateCost(id, costCenterRequestDto);
-    }
-
-    @PostMapping("/approved/{id}")
-    public MessageResponseDto approvedCost(@PathVariable UUID id) {
-        return costCenterService.approvedCost(id);
     }
 
     @DeleteMapping("/{id}")

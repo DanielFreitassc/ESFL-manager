@@ -30,19 +30,14 @@ public class CostCenterService {
     @Transactional
     public MessageResponseDto create(CostCenterRequestDto costCenterRequestDto) {
         CostCenterEntity costCenterEntity = costCenterMapper.toEntity(costCenterRequestDto);
-        costCenterEntity.setApproved(true);
 
         costCenterRepository.save(costCenterEntity);
 
-        return new MessageResponseDto("Custo cadastrado com sucesso!");
+        return new MessageResponseDto("Centro de custo cadastrado com sucesso!");
     }
      
     public Page<CostCenterResponseDto> getCosts(Pageable pageable) {
-        return costCenterRepository.findByApprovedTrue(pageable).map(costCenterMapper::toDto);
-    }
-
-    public Page<CostCenterResponseDto> getForApproved(Pageable pageable) {
-        return costCenterRepository.findByApprovedFalse(pageable).map(costCenterMapper::toDto);
+        return costCenterRepository.findAll(pageable).map(costCenterMapper::toDto);
     }
 
     public CostCenterResponseDto getCost(UUID id) {
@@ -54,29 +49,18 @@ public class CostCenterService {
         CostCenterEntity costCenterEntity = findCostOrThrow(id);
         costCenterMapper.toUpdate(costCenterRequestDto, costCenterEntity);
         costCenterRepository.save(costCenterEntity);
-        return new MessageResponseDto("Custo atualizado com sucesso!");
-    }
-
-    public MessageResponseDto approvedCost(UUID id) {
-        CostCenterEntity costCenterEntity = findCostOrThrow(id);
-
-
-        costCenterEntity.setApproved(!costCenterEntity.isApproved());
-        costCenterRepository.save(costCenterEntity);
-
-        String message = costCenterEntity.isApproved() ? "Custo aprovado": "Custo cancelado";
-        return new MessageResponseDto(message);
+        return new MessageResponseDto("Centro de custo atualizado com sucesso!");
     }
 
     public MessageResponseDto deleteCost(UUID id) {
         costCenterRepository.delete(findCostOrThrow(id));
-        return new MessageResponseDto("Custo removido com sucesso!");
+        return new MessageResponseDto("Centro de custo removido com sucesso!");
     }
 
     public CostCenterEntity findCostOrThrow(UUID id) {
         Optional<CostCenterEntity> cost = costCenterRepository.findById(id);
         if(cost.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Custo não encontrado");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Centro de custo não encontrado");
         }
         return cost.get();
     }

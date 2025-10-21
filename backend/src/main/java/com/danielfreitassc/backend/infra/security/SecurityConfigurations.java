@@ -56,7 +56,7 @@ public class SecurityConfigurations {
                 .requestMatchers(HttpMethod.POST,"/suppliers").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.GET,"/suppliers").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.GET,"/suppliers/{id}").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PUT,"/transactions/{id}").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT,"/suppliers/{id}").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE,"/suppliers/{id}").hasRole("ADMIN")
 
                 .requestMatchers(HttpMethod.POST,"/users").permitAll()

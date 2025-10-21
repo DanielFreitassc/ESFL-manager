@@ -27,5 +27,4 @@ public class CostCenterEntity {
     private String name;
     @Enumerated(EnumType.STRING)
     private CostType type;
-    private boolean approved;
 }

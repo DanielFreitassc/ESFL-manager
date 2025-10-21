@@ -15,11 +15,11 @@ public interface CostCenterMapper {
    @Mapping(target = "type", expression = "java(costCenterEntity.getType().getPtName())")
    @Mapping(target = "select", source = "type")
    CostCenterResponseDto toDto(CostCenterEntity costCenterEntity);
+   
    @Mapping(target = "id", ignore = true)
-   @Mapping(target = "approved", ignore = true)
    CostCenterEntity toEntity(CostCenterRequestDto costCenterRequestDto);
+
    @Mapping(target = "id", ignore = true)
-   @Mapping(target = "approved", ignore = true)
    void toUpdate(CostCenterRequestDto centerRequestDto,@MappingTarget CostCenterEntity centerEntity);
 
 

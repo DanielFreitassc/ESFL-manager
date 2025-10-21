@@ -15,12 +15,8 @@ public interface SupplierMapper {
     SupplierResponseDto toDto(SupplierEntity supplierEntity);
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "approved", ignore = true)
     SupplierEntity toEntity(SupplierRequestDto supplierRequestDto);
 
-    List<SupplierEntity> toEntities(List<SupplierRequestDto> supplierRequestDtos);
-
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "approved", ignore = true)
     void toUpdate(SupplierRequestDto supplierRequestDto, @MappingTarget SupplierEntity supplierEntity);
 }

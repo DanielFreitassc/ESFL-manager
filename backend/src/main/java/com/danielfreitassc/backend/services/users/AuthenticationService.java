@@ -44,7 +44,7 @@ public class AuthenticationService {
     private UserEntity findUserOrThrow(LoginRequestDto dto) {
         Optional<UserEntity> user = userRepository.findByEmail(dto.email());
         if(user.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND,"E-mail ou senha inválidos.");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,"E-mail ou senha inválidos.");
         }
         return user.get();
     }

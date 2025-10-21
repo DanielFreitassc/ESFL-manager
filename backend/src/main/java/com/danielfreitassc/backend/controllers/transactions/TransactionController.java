@@ -41,13 +41,8 @@ public class TransactionController {
     }
 
     @GetMapping
-    public Page<TransactionResponseDto> getAllApproved(Pageable pageable) {
-        return transactionService.getAllApproved(pageable);
-    }
-    
-    @GetMapping("/pending")
-    public Page<TransactionResponseDto> getForApproved(Pageable pageable) {
-        return transactionService.getForApproved(pageable);
+    public Page<TransactionResponseDto> getAll(Pageable pageable) {
+        return transactionService.getAll(pageable);
     }
 
     @GetMapping("/{id}")
@@ -64,10 +59,5 @@ public class TransactionController {
     @DeleteMapping("/{id}")
     public MessageResponseDto deleteTransaction(@PathVariable UUID id) {
         return transactionService.deleteTransaction(id);
-    }
-
-    @PostMapping("/pending/{id}")
-    public MessageResponseDto approved(@PathVariable UUID id) {
-        return transactionService.approved(id);
     }
 }

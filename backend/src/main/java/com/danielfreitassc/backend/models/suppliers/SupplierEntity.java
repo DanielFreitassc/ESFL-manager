@@ -27,5 +27,4 @@ public class SupplierEntity {
     @Column(unique = true)
     private String cnpj;
     private String corporateName;
-    private boolean approved;
 }

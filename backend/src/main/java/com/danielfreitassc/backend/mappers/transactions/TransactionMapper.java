@@ -16,17 +16,13 @@ public interface TransactionMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "status", ignore = true)
-    @Mapping(target = "approved", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "supplier.id", source = "supplierId")
     @Mapping(target = "costCenter.id", source = "costCenterId")
     TransactionEntity toEntity(TransactionRequestDto transactionRequestDto);
-    
-    List<TransactionEntity> toEntities(List<TransactionRequestDto> transactionRequestDtos);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "status", ignore = true)
-    @Mapping(target = "approved", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "supplier.id", source = "supplierId")
     @Mapping(target = "costCenter.id", source = "costCenterId")

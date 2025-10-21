@@ -1,11 +1,7 @@
 package com.danielfreitassc.backend.services.suppliers;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -40,11 +36,7 @@ public class SupplierService {
     }
 
     public Page<SupplierResponseDto> getSuppliers(Pageable pageable) {
-        return supplierRepository.findByApprovedTrue(pageable).map(supplierMapper::toDto);
-    }
-
-    public Page<SupplierResponseDto> getSuppliersForApproved(Pageable pageable) {
-        return supplierRepository.findByApprovedFalse(pageable).map(supplierMapper::toDto);
+        return supplierRepository.findAll(pageable).map(supplierMapper::toDto);
     }
 
     @Transactional
@@ -67,15 +59,6 @@ public class SupplierService {
     public MessageResponseDto deleteSupplier(UUID id) {
         supplierRepository.delete(findSupplierOrThrow(id));
         return new MessageResponseDto("Fornecedor removido com sucesso");
-    }
-
-    public MessageResponseDto approvedSupplier(UUID id) {
-        SupplierEntity supplierEntity = findSupplierOrThrow(id);
-
-        supplierEntity.setApproved(!supplierEntity.isApproved());
-        supplierRepository.save(supplierEntity);
-        String message = (supplierEntity.isApproved()) ? "Fornecedor aprovado" : "Fornecedor cancelado";
-        return new MessageResponseDto(message);
     }
 
     public void findCnpj(String cnpj) {

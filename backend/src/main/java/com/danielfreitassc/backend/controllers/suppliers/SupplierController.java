@@ -42,11 +42,6 @@ public class SupplierController {
         return supplierService.getSuppliers(pageable);
     }
 
-    @GetMapping("/pending")
-    public Page<SupplierResponseDto> getSuppliersForApproved(Pageable pageable) {
-        return supplierService.getSuppliersForApproved(pageable);
-    }
-
     @GetMapping("/{id}")
     public SupplierResponseDto getSupplier(@PathVariable UUID id) {
         return supplierService.getSupplier(id);
@@ -60,10 +55,5 @@ public class SupplierController {
     @DeleteMapping("/{id}")
     public MessageResponseDto deleteSupplier(@PathVariable UUID id) {
         return supplierService.deleteSupplier(id);
-    }
-
-    @PostMapping("/approved/{id}")
-    public MessageResponseDto approvedSupplier(@PathVariable UUID id) {
-        return supplierService.approvedSupplier(id);
     }
 }
