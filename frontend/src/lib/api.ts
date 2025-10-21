@@ -3,6 +3,11 @@ import Cookies from "js-cookie"
 
 const API_BASE_URL = "https://esfl-manager.onrender.com/"
 
+export type ResponsePadrao<T> = {
+  content?: T,
+  message?: string,
+}
+
 export const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {

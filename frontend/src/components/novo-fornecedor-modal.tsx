@@ -53,14 +53,14 @@ export function NovoFornecedorModal({
     try {
       if (fornecedor) {
         // Editar (PUT)
-        await api.put(`/supplier/${fornecedor.id}`, {
+        await api.put(`/suppliers/${fornecedor.id}`, {
           name,
           cnpj,
           corporateName
         })
       } else {
         // Criar (POST)
-        await api.post("/supplier", {
+        await api.post("/suppliers", {
           name,
           cnpj,
           corporateName
