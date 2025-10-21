@@ -4,9 +4,17 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { DashboardView } from "@/components/dashboard-view"
 import { PlanosTrabalhoView } from "@/components/planos-trabalho-view"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu"
-import { BarChart3, FolderKanban, Link, LogOut, Settings } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@radix-ui/react-dropdown-menu"
+import { BarChart3, FolderKanban, LogOut, Settings } from "lucide-react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 
 export default function HomePage() {
   const router = useRouter()
@@ -51,30 +59,51 @@ export default function HomePage() {
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="icon">
+                  <Button variant="outline" size="icon" aria-label="Configurações">
                     <Settings className="h-5 w-5" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>Gerenciamento</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link href="/admin/pending">Usuários Pendentes</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/admin/active">Usuários Ativos</Link>
-                  </DropdownMenuItem>
+
+                <DropdownMenuContent
+                  align="end"
+                  className="w-56 rounded-md border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800 p-2 flex flex-col"
+                >
+                  <DropdownMenuLabel className="px-3 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                    Gerenciamento
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator className="my-1 h-px bg-gray-200 dark:bg-gray-700" />
+
+                  <Link href="/admin/pending" passHref legacyBehavior>
+                    <DropdownMenuItem
+                      asChild
+                      className="cursor-pointer rounded-md px-3 py-2 text-sm text-gray-700
+                      hover:bg-gray-100 focus:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 dark:focus:bg-gray-700"
+                    >
+                      <a>Usuários Pendentes</a>
+                    </DropdownMenuItem>
+                  </Link>
+
+                  <Link href="/admin/active" passHref legacyBehavior>
+                    <DropdownMenuItem
+                      asChild
+                      className="cursor-pointer rounded-md px-3 py-2 text-sm text-gray-700
+                      hover:bg-gray-100 focus:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 dark:focus:bg-gray-700"
+                    >
+                      <a>Usuários Ativos</a>
+                    </DropdownMenuItem>
+                  </Link>
                 </DropdownMenuContent>
               </DropdownMenu>
-              <Button variant="outline" size="icon" onClick={handleLogout}>
+
+              <Button variant="outline" size="icon" onClick={handleLogout} aria-label="Sair">
                 <LogOut className="h-5 w-5" />
               </Button>
             </div>
           </div>
         </div>
       </header>
-      {activeView === "dashboard" ? <DashboardView /> : <PlanosTrabalhoView />}
 
+      {activeView === "dashboard" ? <DashboardView /> : <PlanosTrabalhoView />}
     </div>
   )
 }

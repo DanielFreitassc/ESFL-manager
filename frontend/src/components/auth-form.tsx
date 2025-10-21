@@ -37,6 +37,7 @@ export function AuthForm() {
         password: loginPassword,
       })
 
+      // const response = {token: "Testestest"}
       console.log("[v0] Login response:", response)
 
       setToken(response.token)

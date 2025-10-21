@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
@@ -8,11 +8,37 @@ import { Button } from "@/components/ui/button"
 import { DollarSign, AlertCircle, Lightbulb, Plus } from "lucide-react"
 import Link from "next/link"
 import { NovoLancamentoModal } from "@/components/novo-lancamento-modal"
+import { NovoFornecedorModal } from "./novo-fornecedor-modal"
+import { api } from "@/lib/api"
+
+interface Fornecedor {
+  id: string
+  name: string
+  cnpj: string
+  corporateName: string
+}
 
 export function DashboardView() {
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isModalNovoLancamentoOpen, setIsModalNovoLancamentoOpen] = useState(false)
+  const [isModalNovoFornecedorOpen, setIsModalNovoFornecedorOpen] = useState(false)
+  const [fornecedores, setFornecedores] = useState<Fornecedor[]>([])
 
-  // Mock data - substituir por dados reais da API
+  // Função para buscar fornecedores da API
+  async function fetchFornecedores() {
+    try {
+      const response = await api.get<Fornecedor[]>("/supplier")
+      setFornecedores(response.data)
+    } catch (error) {
+      console.error("Erro ao buscar fornecedores:", error)
+    }
+  }
+
+  // Carregar fornecedores ao montar o componente
+  useEffect(() => {
+    fetchFornecedores()
+  }, [])
+
+  // Mock data – substituir conforme necessidade
   const stats = [
     {
       title: "Receita",
@@ -123,7 +149,7 @@ export function DashboardView() {
       title: "Fundo de Emergência",
       description: "Criar reserva de 3 meses para situações imprevistas",
       value: "Meta: R$ 85.000",
-      color: "text-orange-600",
+      color: "text‑orange‑600",
     },
   ]
 
@@ -346,7 +372,7 @@ export function DashboardView() {
               <CardTitle>Lançamentos Recentes</CardTitle>
               <CardDescription>Mostrando os 5 lançamentos mais recentes. Parcela atual: 4 (Abril)</CardDescription>
             </div>
-            <Button onClick={() => setIsModalOpen(true)}>
+            <Button onClick={() => setIsModalNovoLancamentoOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
               Novo Lançamento
             </Button>
@@ -375,11 +401,10 @@ export function DashboardView() {
                       </Badge>
                     </td>
                     <td className="py-3 text-sm">{transaction.category}</td>
-                    <td className="py-3 text-sm">{transaction.description}</td>
+                    <td classolder="py-3 text-sm">{transaction.description}</td>
                     <td
-                      className={`py-3 text-right text-sm font-medium ${
-                        transaction.value > 0 ? "text-green-600" : "text-red-600"
-                      }`}
+                      className={`py-3 text-right text-sm font-medium ${transaction.value > 0 ? "text-green-600" : "text-red-600"
+                        }`}
                     >
                       {formatCurrency(Math.abs(transaction.value))}
                     </td>
@@ -396,7 +421,58 @@ export function DashboardView() {
         </CardContent>
       </Card>
 
-      <NovoLancamentoModal open={isModalOpen} onOpenChange={setIsModalOpen} />
+      {/* Fornecedores */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Fornecedores</CardTitle>
+            </div>
+            <Button onClick={() => setIsModalNovoFornecedorOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Novo Fornecedor
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b">
+                  <th className="pb-3 text-left text-sm font-medium text-muted-foreground">Nome</th>
+                  <th className="pb-3 text-left text-sm font-medium text-muted-foreground">CNPJ</th>
+                  <th className="pb-3 text-left text-sm font-medium text-muted-foreground">Razão social</th>
+                </tr>
+              </thead>
+              <tbody>
+                {fornecedores.map((fornecedor) => (
+                  <tr key={fornecedor.id} className="border-b last:border-0">
+                    <td className="py-3 text-sm">{fornecedor.name}</td>
+                    <td className="py-3 text-sm">{fornecedor.cnpj}</td>
+                    <td className="py-3 text-sm">{fornecedor.corporateName}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+
+      <NovoFornecedorModal
+        open={isModalNovoFornecedorOpen}
+        onOpenChange={(open) => {
+          setIsModalNovoFornecedorOpen(open)
+          if (!open) {
+            // Quando o modal fechar, recarrega a lista
+            fetchFornecedores()
+          }
+        }}
+      />
+
+      <NovoLancamentoModal
+        open={isModalNovoLancamentoOpen}
+        onOpenChange={setIsModalNovoLancamentoOpen}
+      />
     </div>
   )
 }
