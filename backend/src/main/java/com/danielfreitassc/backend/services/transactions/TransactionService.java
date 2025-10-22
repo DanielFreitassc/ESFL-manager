@@ -65,7 +65,7 @@ public class TransactionService {
     }
 
     public TransactionCategoryDto getRevenue(ExpenseCategory  expenseCategory,String msg) {
-        List<TransactionEntity> transactionEntities = transactionRepository.findAllByExpenseCategory(expenseCategory);
+        List<TransactionEntity> transactionEntities = transactionRepository.findAllByExpenseCategoryAndType(expenseCategory,TransactionType.EXPENSE);
         BigDecimal amount = transactionEntities.stream().map(TransactionEntity::getAmount).reduce(BigDecimal.ZERO,BigDecimal::add);
         
         return new TransactionCategoryDto(expenseCategory.getPtName(),amount,msg);

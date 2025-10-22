@@ -80,21 +80,21 @@ public class TransactionController {
 
     @GetMapping("/service")
     public TransactionCategoryDto getRevenueService() {
-        return transactionService.getRevenue(ExpenseCategory.PERSONNEL, "Terceirizados, consultorias, manutenção");
+        return transactionService.getRevenue(ExpenseCategory.SERVICE, "Terceirizados, consultorias, manutenção");
     }
 
     @GetMapping("/consumption")
     public TransactionCategoryDto getRevenueConsumption() {
-        return transactionService.getRevenue(ExpenseCategory.PERSONNEL, "Material escolar, energia, água");
+        return transactionService.getRevenue(ExpenseCategory.CONSUMPTION, "Material escolar, energia, água");
     }
 
     @GetMapping("/food")
     public TransactionCategoryDto getRevenueFood() {
-        return transactionService.getRevenue(ExpenseCategory.PERSONNEL, "Alimentação escolar e lanches");
+        return transactionService.getRevenue(ExpenseCategory.FOOD, "Alimentação escolar e lanches");
     }
 
     @GetMapping("/operationg")
     public TransactionCategoryDto getRevenueOperationg() {
-        return transactionService.getRevenue(ExpenseCategory.PERSONNEL, "Despesas necessárias para manter o funcionamento.");
+        return transactionService.getRevenue(ExpenseCategory.OPERATING, "Despesas necessárias para manter o funcionamento.");
     }
 }

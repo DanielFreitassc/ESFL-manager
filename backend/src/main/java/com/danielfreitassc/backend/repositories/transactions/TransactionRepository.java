@@ -11,5 +11,5 @@ import com.danielfreitassc.backend.models.transactions.TransactionType;
 
 public interface TransactionRepository extends JpaRepository<TransactionEntity, UUID> {
     List<TransactionEntity> findAllByType(TransactionType income);
-    List<TransactionEntity> findAllByExpenseCategory(ExpenseCategory expenseCategory);
+    List<TransactionEntity> findAllByExpenseCategoryAndType(ExpenseCategory expenseCategory,TransactionType type);
 }
