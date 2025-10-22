@@ -1,15 +1,28 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { DollarSign, AlertCircle, Lightbulb, Plus } from "lucide-react"
+import {
+  DollarSign,
+  AlertCircle,
+  Lightbulb,
+  Plus,
+  Trash,
+  Pencil
+} from "lucide-react"
 import Link from "next/link"
 import { NovoLancamentoModal } from "@/components/novo-lancamento-modal"
 import { NovoFornecedorModal } from "./novo-fornecedor-modal"
-import { api } from "@/lib/api"
+import { api, ResponsePadrao } from "@/lib/api"
 
 interface Fornecedor {
   id: string
@@ -19,26 +32,45 @@ interface Fornecedor {
 }
 
 export function DashboardView() {
-  const [isModalNovoLancamentoOpen, setIsModalNovoLancamentoOpen] = useState(false)
-  const [isModalNovoFornecedorOpen, setIsModalNovoFornecedorOpen] = useState(false)
+  const [isModalNovoLancamentoOpen, setIsModalNovoLancamentoOpen] =
+    useState(false)
+  const [isModalNovoFornecedorOpen, setIsModalNovoFornecedorOpen] =
+    useState(false)
   const [fornecedores, setFornecedores] = useState<Fornecedor[]>([])
+  const [fornecedorSelecionado, setFornecedorSelecionado] =
+    useState<Fornecedor | undefined>(undefined)
 
-  // Função para buscar fornecedores da API
+  // Buscar fornecedores
   async function fetchFornecedores() {
     try {
-      const response = await api.get<Fornecedor[]>("/supplier")
-      setFornecedores(response.data)
+      const { data } =
+        await api.get<ResponsePadrao<Fornecedor[]>>("/suppliers")
+      setFornecedores(data?.content || [])
     } catch (error) {
       console.error("Erro ao buscar fornecedores:", error)
     }
   }
 
-  // Carregar fornecedores ao montar o componente
+  // Deletar fornecedor
+  async function handleDeleteFornecedor(id: string) {
+    try {
+      await api.delete(`/suppliers/${id}`)
+      setFornecedores((prev) => prev.filter((f) => f.id !== id))
+    } catch (error) {
+      console.error("Erro ao deletar fornecedor:", error)
+    }
+  }
+
+  // Editar fornecedor
+  function handleEditFornecedor(fornecedor: Fornecedor) {
+    setFornecedorSelecionado(fornecedor)
+    setIsModalNovoFornecedorOpen(true)
+  }
+
   useEffect(() => {
     fetchFornecedores()
   }, [])
 
-  // Mock data – substituir conforme necessidade
   const stats = [
     {
       title: "Receita",
@@ -46,7 +78,7 @@ export function DashboardView() {
       change: "+12,5%",
       description: "vs mês anterior",
       subtitle: "Recursos recebidos este mês",
-      trend: "up" as const,
+      trend: "up" as const
     },
     {
       title: "Despesas",
@@ -54,7 +86,7 @@ export function DashboardView() {
       change: "+8,2%",
       description: "vs mês anterior",
       subtitle: "Gastos realizados este mês",
-      trend: "up" as const,
+      trend: "up" as const
     },
     {
       title: "Saldo Real",
@@ -62,7 +94,7 @@ export function DashboardView() {
       change: "+15,3%",
       description: "vs mês anterior",
       subtitle: "Disponível atualmente",
-      trend: "up" as const,
+      trend: "up" as const
     },
     {
       title: "Saldo Projetado",
@@ -70,8 +102,8 @@ export function DashboardView() {
       change: "+22,1%",
       description: "vs mês anterior",
       subtitle: "Projeção para próximo mês",
-      trend: "up" as const,
-    },
+      trend: "up" as const
+    }
   ]
 
   const categories = [
@@ -81,7 +113,7 @@ export function DashboardView() {
       description: "Salários, encargos e benefícios",
       used: 128340,
       total: 135000,
-      percentage: 95.1,
+      percentage: 95.1
     },
     {
       name: "Serviço",
@@ -89,7 +121,7 @@ export function DashboardView() {
       description: "Terceirizados, consultorias, manutenção",
       used: 89500,
       total: 95000,
-      percentage: 94.2,
+      percentage: 94.2
     },
     {
       name: "Consumo",
@@ -97,8 +129,8 @@ export function DashboardView() {
       description: "Material escolar, energia, água",
       used: 42180,
       total: 55000,
-      percentage: 76.7,
-    },
+      percentage: 76.7
+    }
   ]
 
   const parcela = {
@@ -106,7 +138,7 @@ export function DashboardView() {
     daysTotal: 90,
     daysUsed: 45,
     centroCusto: "Educação",
-    parcela: "4/12 (Abril 2024)",
+    parcela: "4/12 (Abril 2024)"
   }
 
   const moreCategories = [
@@ -115,15 +147,15 @@ export function DashboardView() {
       description: "Alimentação escolar e lanches",
       used: 25320,
       total: 30000,
-      percentage: 84.4,
+      percentage: 84.4
     },
     {
       name: "Capital",
       description: "Equipamentos, móveis e infraestrutura",
       used: 18750,
       total: 25000,
-      percentage: 75.0,
-    },
+      percentage: 75.0
+    }
   ]
 
   const suggestions = [
@@ -131,17 +163,19 @@ export function DashboardView() {
       type: "Otimização",
       priority: "Alta",
       title: "Reduzir Despesas Fixas",
-      description: "Renegociar contratos de energia e internet para economizar R$ 2.500/mês",
+      description:
+        "Renegociar contratos de energia e internet para economizar R$ 2.500/mês",
       value: "Economia: R$ 2.500",
-      color: "text-blue-600",
+      color: "text-blue-600"
     },
     {
       type: "Educação",
       priority: "Média",
       title: "Material Didático",
-      description: "Investir em materiais educativos digitais para melhorar o ensino",
+      description:
+        "Investir em materiais educativos digitais para melhorar o ensino",
       value: "Investimento: R$ 8.000",
-      color: "text-purple-600",
+      color: "text-purple-600"
     },
     {
       type: "Reserva",
@@ -149,8 +183,8 @@ export function DashboardView() {
       title: "Fundo de Emergência",
       description: "Criar reserva de 3 meses para situações imprevistas",
       value: "Meta: R$ 85.000",
-      color: "text‑orange‑600",
-    },
+      color: "text-orange-600"
+    }
   ]
 
   const recentTransactions = [
@@ -160,7 +194,7 @@ export function DashboardView() {
       category: "Pessoal",
       description: "Folha de pagamento - Abril",
       value: -32500,
-      status: "Realizado",
+      status: "Realizado"
     },
     {
       date: "13/04/2024",
@@ -168,7 +202,7 @@ export function DashboardView() {
       category: "Merenda",
       description: "Compra de alimentos para merenda escolar",
       value: -8750,
-      status: "Realizado",
+      status: "Realizado"
     },
     {
       date: "12/04/2024",
@@ -176,7 +210,7 @@ export function DashboardView() {
       category: "Capital",
       description: "Repasse governamental - Parcela 4",
       value: 37500,
-      status: "Realizado",
+      status: "Realizado"
     },
     {
       date: "11/04/2024",
@@ -184,7 +218,7 @@ export function DashboardView() {
       category: "Consumo",
       description: "Material escolar e suprimentos",
       value: -3240,
-      status: "Provisionado",
+      status: "Provisionado"
     },
     {
       date: "10/04/2024",
@@ -192,34 +226,45 @@ export function DashboardView() {
       category: "Serviço",
       description: "Serviços de limpeza e higienização",
       value: -2800,
-      status: "Realizado",
-    },
+      status: "Realizado"
+    }
   ]
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("pt-BR", {
+  const formatCurrency = (value: number) =>
+    new Intl.NumberFormat("pt-BR", {
       style: "currency",
-      currency: "BRL",
+      currency: "BRL"
     }).format(value)
-  }
 
   return (
     <div className="space-y-6">
-      {/* Stats Cards */}
+      {/* Estatísticas */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
           <Card key={stat.title}>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{stat.title}</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                {stat.title}
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-1">
                 <div className="text-2xl font-bold">{stat.value}</div>
                 <div className="flex items-center gap-2 text-sm">
-                  <span className={stat.trend === "up" ? "text-green-600" : "text-red-600"}>{stat.change}</span>
-                  <span className="text-muted-foreground">{stat.description}</span>
+                  <span
+                    className={
+                      stat.trend === "up" ? "text-green-600" : "text-red-600"
+                    }
+                  >
+                    {stat.change}
+                  </span>
+                  <span className="text-muted-foreground">
+                    {stat.description}
+                  </span>
                 </div>
-                <p className="text-xs text-muted-foreground">{stat.subtitle}</p>
+                <p className="text-xs text-muted-foreground">
+                  {stat.subtitle}
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -425,10 +470,13 @@ export function DashboardView() {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Fornecedores</CardTitle>
-            </div>
-            <Button onClick={() => setIsModalNovoFornecedorOpen(true)}>
+            <CardTitle>Fornecedores</CardTitle>
+            <Button
+              onClick={() => {
+                setFornecedorSelecionado(undefined)
+                setIsModalNovoFornecedorOpen(true)
+              }}
+            >
               <Plus className="mr-2 h-4 w-4" />
               Novo Fornecedor
             </Button>
@@ -439,17 +487,42 @@ export function DashboardView() {
             <table className="w-full">
               <thead>
                 <tr className="border-b">
-                  <th className="pb-3 text-left text-sm font-medium text-muted-foreground">Nome</th>
-                  <th className="pb-3 text-left text-sm font-medium text-muted-foreground">CNPJ</th>
-                  <th className="pb-3 text-left text-sm font-medium text-muted-foreground">Razão social</th>
+                  <th className="pb-3 text-left text-sm font-medium text-muted-foreground">
+                    Nome
+                  </th>
+                  <th className="pb-3 text-left text-sm font-medium text-muted-foreground">
+                    CNPJ
+                  </th>
+                  <th className="pb-3 text-left text-sm font-medium text-muted-foreground">
+                    Razão Social
+                  </th>
+                  <th className="pb-3 text-right text-sm font-medium text-muted-foreground">
+                    Ações
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {fornecedores.map((fornecedor) => (
-                  <tr key={fornecedor.id} className="border-b last:border-0">
-                    <td className="py-3 text-sm">{fornecedor.name}</td>
-                    <td className="py-3 text-sm">{fornecedor.cnpj}</td>
-                    <td className="py-3 text-sm">{fornecedor.corporateName}</td>
+                {fornecedores.map((f) => (
+                  <tr key={f.id} className="border-b last:border-0">
+                    <td className="py-3 text-sm">{f.name}</td>
+                    <td className="py-3 text-sm">{f.cnpj}</td>
+                    <td className="py-3 text-sm">{f.corporateName}</td>
+                    <td className="py-3 text-right flex justify-end gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => handleEditFornecedor(f)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        onClick={() => handleDeleteFornecedor(f.id)}
+                      >
+                        <Trash className="h-4 w-4" />
+                      </Button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -458,15 +531,17 @@ export function DashboardView() {
         </CardContent>
       </Card>
 
+      {/* Modais */}
       <NovoFornecedorModal
         open={isModalNovoFornecedorOpen}
         onOpenChange={(open) => {
           setIsModalNovoFornecedorOpen(open)
           if (!open) {
-            // Quando o modal fechar, recarrega a lista
             fetchFornecedores()
+            setFornecedorSelecionado(undefined)
           }
         }}
+        fornecedor={fornecedorSelecionado}
       />
 
       <NovoLancamentoModal
