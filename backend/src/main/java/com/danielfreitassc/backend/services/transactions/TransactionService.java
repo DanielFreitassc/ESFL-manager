@@ -12,10 +12,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.danielfreitassc.backend.dtos.common.MessageResponseDto;
+import com.danielfreitassc.backend.dtos.transactions.TransactionCategoryDto;
 import com.danielfreitassc.backend.dtos.transactions.TransactionRequestDto;
 import com.danielfreitassc.backend.dtos.transactions.TransactionResponseDto;
 import com.danielfreitassc.backend.dtos.transactions.TransactionViewDto;
 import com.danielfreitassc.backend.mappers.transactions.TransactionMapper;
+import com.danielfreitassc.backend.models.transactions.ExpenseCategory;
 import com.danielfreitassc.backend.models.transactions.TransactionEntity;
 import com.danielfreitassc.backend.models.transactions.TransactionType;
 import com.danielfreitassc.backend.repositories.transactions.TransactionRepository;
@@ -51,7 +53,6 @@ public class TransactionService {
         
         BigDecimal totalAmount  = transactionEntities.stream().map(TransactionEntity::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        
         return new TransactionViewDto(TransactionType.INCOME.getPtName(),totalAmount);
     }
 
@@ -61,6 +62,13 @@ public class TransactionService {
         BigDecimal totalAmount = transactionEntities.stream().map(TransactionEntity::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
 
         return new TransactionViewDto(TransactionType.EXPENSE.getPtName(),totalAmount);
+    }
+
+    public TransactionCategoryDto getRevenue(ExpenseCategory  expenseCategory,String msg) {
+        List<TransactionEntity> transactionEntities = transactionRepository.findAllByExpenseCategory(expenseCategory);
+        BigDecimal amount = transactionEntities.stream().map(TransactionEntity::getAmount).reduce(BigDecimal.ZERO,BigDecimal::add);
+        
+        return new TransactionCategoryDto(expenseCategory.getPtName(),amount,msg);
     }
 
     public TransactionViewDto getRealAmount() {

@@ -16,9 +16,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.danielfreitassc.backend.dtos.common.MessageResponseDto;
+import com.danielfreitassc.backend.dtos.transactions.TransactionCategoryDto;
 import com.danielfreitassc.backend.dtos.transactions.TransactionRequestDto;
 import com.danielfreitassc.backend.dtos.transactions.TransactionResponseDto;
 import com.danielfreitassc.backend.dtos.transactions.TransactionViewDto;
+import com.danielfreitassc.backend.models.transactions.ExpenseCategory;
 import com.danielfreitassc.backend.services.transactions.TransactionService;
 
 import jakarta.validation.Valid;
@@ -69,5 +71,30 @@ public class TransactionController {
     @DeleteMapping("/{id}")
     public MessageResponseDto deleteTransaction(@PathVariable UUID id) {
         return transactionService.deleteTransaction(id);
+    }
+
+    @GetMapping("/personnel")
+    public TransactionCategoryDto getRevenuePersonal() {
+        return transactionService.getRevenue(ExpenseCategory.PERSONNEL, "Salários, encargos e benefícios");
+    }
+
+    @GetMapping("/service")
+    public TransactionCategoryDto getRevenueService() {
+        return transactionService.getRevenue(ExpenseCategory.PERSONNEL, "Terceirizados, consultorias, manutenção");
+    }
+
+    @GetMapping("/consumption")
+    public TransactionCategoryDto getRevenueConsumption() {
+        return transactionService.getRevenue(ExpenseCategory.PERSONNEL, "Material escolar, energia, água");
+    }
+
+    @GetMapping("/food")
+    public TransactionCategoryDto getRevenueFood() {
+        return transactionService.getRevenue(ExpenseCategory.PERSONNEL, "Alimentação escolar e lanches");
+    }
+
+    @GetMapping("/operationg")
+    public TransactionCategoryDto getRevenueOperationg() {
+        return transactionService.getRevenue(ExpenseCategory.PERSONNEL, "Despesas necessárias para manter o funcionamento.");
     }
 }
