@@ -1,5 +1,6 @@
 package com.danielfreitassc.backend.controllers.centers;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.danielfreitassc.backend.dtos.centers.CostCenterRequestDto;
 import com.danielfreitassc.backend.dtos.centers.CostCenterResponseDto;
+import com.danielfreitassc.backend.dtos.centers.CostCenterSelectDto;
 import com.danielfreitassc.backend.dtos.common.MessageResponseDto;
 import com.danielfreitassc.backend.services.centers.CostCenterService;
 
@@ -36,6 +38,11 @@ public class CostCenterController {
     @GetMapping
     public Page<CostCenterResponseDto> getCosts(Pageable pageable) {
         return costCenterService.getCosts(pageable);
+    }
+
+    @GetMapping("/list")
+    public List<CostCenterSelectDto> select() {
+        return costCenterService.select();
     }
 
     @GetMapping("/{id}")

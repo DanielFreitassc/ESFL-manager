@@ -5,21 +5,19 @@ import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.danielfreitassc.backend.dtos.common.MessageResponseDto;
 import com.danielfreitassc.backend.dtos.suppliers.SupplierRequestDto;
 import com.danielfreitassc.backend.dtos.suppliers.SupplierResponseDto;
+import com.danielfreitassc.backend.dtos.suppliers.SupplierSelectDto;
 import com.danielfreitassc.backend.services.suppliers.SupplierService;
 
 import jakarta.validation.Valid;
@@ -40,6 +38,11 @@ public class SupplierController {
     @GetMapping
     public Page<SupplierResponseDto> getSuppliers(Pageable pageable) {
         return supplierService.getSuppliers(pageable);
+    }
+
+    @GetMapping("/list")
+    public List<SupplierSelectDto> select() {
+        return supplierService.select();
     }
 
     @GetMapping("/{id}")

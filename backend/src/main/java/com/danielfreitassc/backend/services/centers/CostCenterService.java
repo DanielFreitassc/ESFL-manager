@@ -13,6 +13,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.danielfreitassc.backend.dtos.centers.CostCenterRequestDto;
 import com.danielfreitassc.backend.dtos.centers.CostCenterResponseDto;
+import com.danielfreitassc.backend.dtos.centers.CostCenterSelectDto;
 import com.danielfreitassc.backend.dtos.common.MessageResponseDto;
 import com.danielfreitassc.backend.mappers.centers.CostCenterMapper;
 import com.danielfreitassc.backend.models.centers.CostCenterEntity;
@@ -42,6 +43,10 @@ public class CostCenterService {
 
     public CostCenterResponseDto getCost(UUID id) {
         return costCenterMapper.toDto(findCostOrThrow(id));
+    }
+
+    public List<CostCenterSelectDto> select() {
+        return costCenterRepository.findAll().stream().map(costCenterMapper::toSelect).toList();
     }
 
     @Transactional

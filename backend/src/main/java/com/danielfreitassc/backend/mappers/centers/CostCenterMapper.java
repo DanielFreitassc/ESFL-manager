@@ -8,6 +8,7 @@ import org.mapstruct.MappingTarget;
 
 import com.danielfreitassc.backend.dtos.centers.CostCenterRequestDto;
 import com.danielfreitassc.backend.dtos.centers.CostCenterResponseDto;
+import com.danielfreitassc.backend.dtos.centers.CostCenterSelectDto;
 import com.danielfreitassc.backend.models.centers.CostCenterEntity;
 
 @Mapper(componentModel = "spring")
@@ -16,6 +17,8 @@ public interface CostCenterMapper {
    @Mapping(target = "select", source = "type")
    CostCenterResponseDto toDto(CostCenterEntity costCenterEntity);
    
+   CostCenterSelectDto toSelect(CostCenterEntity costCenterEntity);
+
    @Mapping(target = "id", ignore = true)
    CostCenterEntity toEntity(CostCenterRequestDto costCenterRequestDto);
 

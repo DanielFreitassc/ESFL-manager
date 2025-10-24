@@ -1,5 +1,6 @@
 package com.danielfreitassc.backend.services.suppliers;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -12,6 +13,7 @@ import org.springframework.web.server.ResponseStatusException;
 import com.danielfreitassc.backend.dtos.common.MessageResponseDto;
 import com.danielfreitassc.backend.dtos.suppliers.SupplierRequestDto;
 import com.danielfreitassc.backend.dtos.suppliers.SupplierResponseDto;
+import com.danielfreitassc.backend.dtos.suppliers.SupplierSelectDto;
 import com.danielfreitassc.backend.mappers.suppliers.SupplierMapper;
 import com.danielfreitassc.backend.models.suppliers.SupplierEntity;
 import com.danielfreitassc.backend.repositories.suppliers.SupplierRepository;
@@ -57,6 +59,10 @@ public class SupplierService {
 
     public SupplierResponseDto getSupplier(UUID id) {
         return supplierMapper.toDto(findSupplierOrThrow(id));
+    }
+
+    public List<SupplierSelectDto> select() {
+        return supplierRepository.findAll().stream().map(supplierMapper::toSelect).toList();
     }
 
     public MessageResponseDto deleteSupplier(UUID id) {
