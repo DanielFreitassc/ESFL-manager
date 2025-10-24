@@ -1,8 +1,9 @@
 "use client"
 
 import type React from "react"
+
 import { useState } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -10,14 +11,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { createCostCenter } from "@/lib/api"
 import { toast } from "react-toastify"
 
-// Interface dos props do componente
-export interface NovoCentroCustoModalProps {
+interface NovoCentroCustoModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onSuccess?: () => void
 }
 
-// Tipos de centro de custo disponíveis
 const COST_TYPES = [
   { value: "OPERATING", label: "Operacional" },
   { value: "OPERATING_CAPITAL", label: "Operacional e Capital" },
@@ -55,16 +54,13 @@ export function NovoCentroCustoModal({ open, onOpenChange, onSuccess }: NovoCent
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] rounded-2xl p-6">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Novo Centro de Custo</DialogTitle>
-          <DialogDescription>
-            Cadastre um novo centro de custo para a AFASC
-          </DialogDescription>
+          <DialogDescription>Cadastre um novo centro de custo para a AFASC</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Nome do centro de custo */}
           <div className="space-y-2">
             <Label htmlFor="name">Nome do Centro de Custo</Label>
             <Input
@@ -76,14 +72,9 @@ export function NovoCentroCustoModal({ open, onOpenChange, onSuccess }: NovoCent
             />
           </div>
 
-          {/* Tipo de centro de custo */}
           <div className="space-y-2">
             <Label htmlFor="type">Tipo</Label>
-            <Select
-              value={type}
-              onValueChange={setType}
-              disabled={loading}
-            >
+            <Select value={type} onValueChange={setType} disabled={loading}>
               <SelectTrigger id="type">
                 <SelectValue placeholder="Selecione o tipo" />
               </SelectTrigger>
@@ -97,14 +88,8 @@ export function NovoCentroCustoModal({ open, onOpenChange, onSuccess }: NovoCent
             </Select>
           </div>
 
-          {/* Botões */}
           <div className="flex justify-end gap-3 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={loading}
-            >
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
               Cancelar
             </Button>
             <Button type="submit" disabled={loading}>
