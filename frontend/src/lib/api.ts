@@ -1,7 +1,7 @@
 import axios from "axios"
 import Cookies from "js-cookie"
 
-const API_BASE_URL = "https://esfl-manager.onrender.com/"
+const API_BASE_URL = "http://localhost:8080"
 
 export type ResponsePadrao<T> = {
   content?: T,
@@ -14,6 +14,12 @@ export const api = axios.create({
     "Content-Type": "application/json",
   },
 })
+
+export interface TransactionCategoryStat {
+  type: string
+  amount: number
+  notes: string
+}
 
 api.interceptors.request.use(
   (config) => {
@@ -56,6 +62,34 @@ export interface AuthResponse {
 
 export interface ApiError {
   message: string
+}
+
+// Transactions API
+export async function getTransactionsByCategory() {
+  try {
+    const endpoints = [
+      { key: "personnel", name: "Pessoal" },
+      { key: "service", name: "Serviço" },
+      { key: "consumption", name: "Consumo" },
+      { key: "food", name: "Alimentação" },
+      { key: "operationg", name: "Operacional" },
+    ]
+
+    const responses = await Promise.all(
+      endpoints.map((e) => api.get<TransactionCategoryStat>(`/transactions/${e.key}`))
+    )
+
+    return responses.map((res, i) => ({
+      name: endpoints[i].name,
+      description: res.data.notes,
+      used: res.data.amount,
+    }))
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw new Error("Erro ao buscar gastos por categoria")
+  }
 }
 
 // Auth API

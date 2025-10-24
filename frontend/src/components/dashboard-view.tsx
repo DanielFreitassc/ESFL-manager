@@ -20,6 +20,7 @@ import Link from "next/link"
 import { NovoLancamentoModal } from "@/components/novo-lancamento-modal"
 import { NovoFornecedorModal } from "./novo-fornecedor-modal"
 import { api, ResponsePadrao } from "@/lib/api"
+import { getTransactionsByCategory } from "@/lib/api"
 
 interface Fornecedor {
   id: string
@@ -33,6 +34,7 @@ interface TransactionStat {
   totalAmount: number
 }
 
+
 export function DashboardView() {
   const [isModalNovoLancamentoOpen, setIsModalNovoLancamentoOpen] =
     useState(false)
@@ -45,6 +47,19 @@ export function DashboardView() {
   const [stats, setStats] = useState<
     { title: string; value: string; subtitle: string }[]
   >([])
+  const [categories, setCategories] = useState<
+    { name: string; description: string; used: number }[]
+  >([])
+
+  // 🔹 Buscar categorias dinamicamente
+  async function fetchCategories() {
+    try {
+      const data = await getTransactionsByCategory()
+      setCategories(data)
+    } catch (error) {
+      console.error("Erro ao buscar categorias:", error)
+    }
+  }
 
   // Buscar fornecedores
   async function fetchFornecedores() {
@@ -113,25 +128,8 @@ export function DashboardView() {
   useEffect(() => {
     fetchFornecedores()
     fetchStats()
+    fetchCategories()
   }, [])
-
-  const categories = [
-    {
-      name: "Pessoal",
-      description: "Salários, encargos e benefícios",
-      used: 128340,
-    },
-    {
-      name: "Serviço",
-      description: "Terceirizados, consultorias, manutenção",
-      used: 89500,
-    },
-    {
-      name: "Consumo",
-      description: "Material escolar, energia, água",
-      used: 42180,
-    }
-  ]
 
   const recentTransactions = [
     {
