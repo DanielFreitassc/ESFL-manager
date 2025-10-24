@@ -9,6 +9,7 @@ import { useEffect, useState } from "react"
 import { api } from "@/lib/api"
 import { toast } from "react-toastify"
 import { format } from "date-fns"
+import { SugestaoIA } from "./novo-lancamento-por-ia-form-modal"
 
 // Mapas PT → EN
 const typeMap = { receita: "INCOME", despesa: "EXPENSE" } as const
@@ -39,6 +40,7 @@ interface CostCenter {
 interface NovoLancamentoFormModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  sugestao?: SugestaoIA | null
 }
 
 export function NovoLancamentoFormModal({ open, onOpenChange }: NovoLancamentoFormModalProps) {
