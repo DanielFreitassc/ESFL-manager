@@ -7,9 +7,6 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { WandSparkles } from "lucide-react"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
 import { NovoLancamentoFormModal } from "./novo-lancamento-form-modal"
 
 export interface SugestaoIA {
@@ -164,7 +161,7 @@ export function NovoLancamentoPorIaFormModal({ open, onOpenChange }: ModalIAProp
             <NovoLancamentoFormModal
                 open={abrirModalLancamento}
                 onOpenChange={setAbrirModalLancamento}
-                sugestao={selectedSugestao}
+                //sugestao={selectedSugestao}
             />
         </>
     )
