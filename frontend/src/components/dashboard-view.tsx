@@ -211,14 +211,16 @@ export function DashboardView() {
                         {transaction.type === "INCOME" ? "receita" : "despesa"}
                       </Badge>
                     </td>
-                    <td className="py-3 text-sm">{transaction.expenseCategory}</td>
+                    {/* Mostrar a categoria em português */}
+                    <td className="py-3 text-sm">{transaction.expenseCategoryPt || transaction.expenseCategory}</td>
                     <td className="py-3 text-sm">{transaction.notes}</td>
                     <td className={`py-3 text-right text-sm font-medium ${transaction.amount > 0 ? "text-green-600" : "text-red-600"}`}>
                       {formatCurrency(Math.abs(transaction.amount))}
                     </td>
+                    {/* Mostrar o status em português */}
                     <td className="py-3 text-right">
-                      <Badge variant={transaction.transactionStatus === "COMPLETED" ? "default" : "outline"}>
-                        {transaction.transactionStatus === "COMPLETED" ? "Realizado" : "Provisionado"}
+                      <Badge variant={transaction.transactionStatus === "efetuado" ? "default" : "outline"}>
+                        {transaction.transactionStatus === "efetuado" ? "Realizado" : "Provisionado"}
                       </Badge>
                     </td>
                   </tr>

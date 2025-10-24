@@ -46,13 +46,15 @@ export interface Transaction {
   installmentNumber: number
   costCenter: CostCenter
   expenseCategory: string
+  expenseCategoryPt: string
   supplier?: Supplier
   notes?: string
   amount: number
   dueDate: string
-  transactionStatus?: "PROJECTION" | "COMPLETED"
   createdAt: string
+  transactionStatus: "efetuado" | "projecao" | "COMPLETED" | "PROJECTION"
 }
+
 
 api.interceptors.request.use(
   (config) => {
@@ -346,10 +348,30 @@ export async function getCostCentersList(): Promise<CostCenter[]> {
     throw new Error("Erro ao buscar centros de custo")
   }
 }
+
 export async function getTransactions(page = 0, size = 10): Promise<PaginatedResponse<Transaction>> {
   try {
     const { data } = await api.get<PaginatedResponse<Transaction>>(`/transactions?page=${page}&size=${size}`)
-    return data
+
+    const mappedContent: Transaction[] = data.content.map(t => ({
+      ...t,
+      // Mapear status em português para inglês
+      transactionStatus: (
+        t.transactionStatus === "efetuado"
+          ? "COMPLETED"
+          : t.transactionStatus === "projecao"
+          ? "PROJECTION"
+          : t.transactionStatus
+      ) as "efetuado" | "projecao" | "COMPLETED" | "PROJECTION",
+
+      // Garantir que expenseCategoryPt esteja definido
+      expenseCategoryPt: (t as any).expenseCategoryPt || t.expenseCategory
+    }))
+
+    return {
+      ...data,
+      content: mappedContent
+    }
   } catch (error) {
     if (axios.isAxiosError(error) && error.response?.data?.message) {
       throw new Error(error.response.data.message)
@@ -357,3 +379,5 @@ export async function getTransactions(page = 0, size = 10): Promise<PaginatedRes
     throw new Error("Erro ao buscar transações")
   }
 }
+
+

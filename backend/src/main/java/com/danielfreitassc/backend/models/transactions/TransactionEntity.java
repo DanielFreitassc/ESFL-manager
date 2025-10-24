@@ -51,7 +51,7 @@ public class TransactionEntity {
     @JsonFormat(pattern = "dd/MM/yyyy")
     private LocalDate dueDate;
     @Enumerated(EnumType.STRING)
-    private TransactionStatus status;
+    private TransactionStatus transactionStatus;
     @CreationTimestamp
     private Timestamp createdAt;
 }

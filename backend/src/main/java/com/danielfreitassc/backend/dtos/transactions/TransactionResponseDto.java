@@ -15,13 +15,14 @@ public record TransactionResponseDto(
     int installmentNumber,
     CostCenterResponseDto costCenter,
     String expenseCategory,
+    String expenseCategoryPt,
     SupplierResponseDto supplier,
     String notes,
     BigDecimal amount,
     @JsonFormat(pattern = "dd/MM/yyyy")
     LocalDate dueDate,
-    String status,
-    Timestamp createdAt
+    Timestamp createdAt,
+    String transactionStatus
 ) {
     
 }
