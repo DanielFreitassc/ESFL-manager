@@ -43,7 +43,7 @@ interface NovoLancamentoFormModalProps {
   sugestao?: SugestaoIA | null
 }
 
-export function NovoLancamentoFormModal({ open, onOpenChange }: NovoLancamentoFormModalProps) {
+export function NovoLancamentoFormModal({ open, onOpenChange, sugestao  }: NovoLancamentoFormModalProps) {
   const [date, setDate] = useState("")
   const [type, setType] = useState<TypeKey>("despesa")
   const [status, setStatus] = useState<StatusKey>("pendente")
@@ -54,6 +54,16 @@ export function NovoLancamentoFormModal({ open, onOpenChange }: NovoLancamentoFo
   const [costCenters, setCostCenters] = useState<CostCenter[]>([])
   const [amount, setAmount] = useState<number>(0)
   const [notes, setNotes] = useState("")
+
+  useEffect(() => {
+  if (sugestao) {
+    setAmount(sugestao.valorSugerido)
+    setNotes(sugestao.justificativa)
+    setCategory(sugestao.categoria.toLowerCase() as CategoryKey)
+    setType("despesa") // ou 'receita', dependendo da lógica
+    setDate(format(new Date(), "yyyy-MM-dd"))
+  }
+}, [sugestao])
 
   // Buscar fornecedores e centros de custo
   useEffect(() => {
