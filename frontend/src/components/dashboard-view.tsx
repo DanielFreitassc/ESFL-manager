@@ -10,16 +10,11 @@ import {
 } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import {
-  DollarSign,
-  Plus,
-  Trash,
-  Pencil
-} from "lucide-react"
+import { DollarSign, Plus, Trash, Pencil } from "lucide-react"
 import Link from "next/link"
 import { NovoLancamentoModal } from "@/components/novo-lancamento-modal"
 import { NovoFornecedorModal } from "./novo-fornecedor-modal"
-import { api, ResponsePadrao } from "@/lib/api"
+import { api, ResponsePadrao, Transaction } from "@/lib/api"
 import { getTransactionsByCategory } from "@/lib/api"
 
 interface Fornecedor {
@@ -29,27 +24,18 @@ interface Fornecedor {
   corporateName: string
 }
 
-interface TransactionStat {
-  type: string
-  totalAmount: number
-}
-
-
 export function DashboardView() {
-  const [isModalNovoLancamentoOpen, setIsModalNovoLancamentoOpen] =
-    useState(false)
-  const [isModalNovoFornecedorOpen, setIsModalNovoFornecedorOpen] =
-    useState(false)
+  const [isModalNovoLancamentoOpen, setIsModalNovoLancamentoOpen] = useState(false)
+  const [isModalNovoFornecedorOpen, setIsModalNovoFornecedorOpen] = useState(false)
   const [fornecedores, setFornecedores] = useState<Fornecedor[]>([])
-  const [fornecedorSelecionado, setFornecedorSelecionado] =
-    useState<Fornecedor | undefined>(undefined)
+  const [fornecedorSelecionado, setFornecedorSelecionado] = useState<Fornecedor | undefined>(undefined)
 
-  const [stats, setStats] = useState<
-    { title: string; value: string; subtitle: string }[]
-  >([])
-  const [categories, setCategories] = useState<
-    { name: string; description: string; used: number }[]
-  >([])
+  const [stats, setStats] = useState<{ title: string; value: string; subtitle: string }[]>([])
+  const [categories, setCategories] = useState<{ name: string; description: string; used: number }[]>([])
+
+  const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [page, setPage] = useState(0)
+  const [totalPages, setTotalPages] = useState(1)
 
   // 🔹 Buscar categorias dinamicamente
   async function fetchCategories() {
@@ -64,8 +50,7 @@ export function DashboardView() {
   // Buscar fornecedores
   async function fetchFornecedores() {
     try {
-      const { data } =
-        await api.get<ResponsePadrao<Fornecedor[]>>("/suppliers")
+      const { data } = await api.get<ResponsePadrao<Fornecedor[]>>("/suppliers")
       setFornecedores(data?.content || [])
     } catch (error) {
       console.error("Erro ao buscar fornecedores:", error)
@@ -76,16 +61,13 @@ export function DashboardView() {
   async function fetchStats() {
     try {
       const [incomeRes, expenseRes, realAmountRes] = await Promise.all([
-        api.get<TransactionStat>("/transactions/income"),
-        api.get<TransactionStat>("/transactions/expense"),
-        api.get<TransactionStat>("/transactions/real-amount")
+        api.get<{ totalAmount: number }>("/transactions/income"),
+        api.get<{ totalAmount: number }>("/transactions/expense"),
+        api.get<{ totalAmount: number }>("/transactions/real-amount")
       ])
 
       const formatCurrency = (value: number) =>
-        new Intl.NumberFormat("pt-BR", {
-          style: "currency",
-          currency: "BRL"
-        }).format(value)
+        new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value)
 
       setStats([
         {
@@ -109,11 +91,23 @@ export function DashboardView() {
     }
   }
 
+  // Buscar lançamentos paginados
+  async function fetchTransactions(pageNumber = 0, size = 10) {
+    try {
+      const res = await api.get(`/transactions?page=${pageNumber}&size=${size}`)
+      setTransactions(res.data.content)
+      setPage(res.data.pageable.pageNumber)
+      setTotalPages(res.data.totalPages)
+    } catch (error) {
+      console.error("Erro ao buscar lançamentos:", error)
+    }
+  }
+
   // Deletar fornecedor
   async function handleDeleteFornecedor(id: string) {
     try {
       await api.delete(`/suppliers/${id}`)
-      setFornecedores((prev) => prev.filter((f) => f.id !== id))
+      setFornecedores(prev => prev.filter(f => f.id !== id))
     } catch (error) {
       console.error("Erro ao deletar fornecedor:", error)
     }
@@ -129,74 +123,25 @@ export function DashboardView() {
     fetchFornecedores()
     fetchStats()
     fetchCategories()
+    fetchTransactions()
   }, [])
 
-  const recentTransactions = [
-    {
-      date: "14/04/2024",
-      type: "despesa",
-      category: "Pessoal",
-      description: "Folha de pagamento - Abril",
-      value: -32500,
-      status: "Realizado"
-    },
-    {
-      date: "13/04/2024",
-      type: "despesa",
-      category: "Merenda",
-      description: "Compra de alimentos para merenda escolar",
-      value: -8750,
-      status: "Realizado"
-    },
-    {
-      date: "12/04/2024",
-      type: "receita",
-      category: "Capital",
-      description: "Repasse governamental - Parcela 4",
-      value: 37500,
-      status: "Realizado"
-    },
-    {
-      date: "11/04/2024",
-      type: "despesa",
-      category: "Consumo",
-      description: "Material escolar e suprimentos",
-      value: -3240,
-      status: "Provisionado"
-    },
-    {
-      date: "10/04/2024",
-      type: "despesa",
-      category: "Serviço",
-      description: "Serviços de limpeza e higienização",
-      value: -2800,
-      status: "Realizado"
-    }
-  ]
-
   const formatCurrency = (value: number) =>
-    new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL"
-    }).format(value)
+    new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value)
 
   return (
     <div className="space-y-6">
-      {/* Estatísticas Dinâmicas (Transactions) */}
+      {/* Estatísticas Dinâmicas */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
+        {stats.map(stat => (
           <Card key={stat.title}>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {stat.title}
-              </CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">{stat.title}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-1">
                 <div className="text-2xl font-bold">{stat.value}</div>
-                <p className="text-xs text-muted-foreground">
-                  {stat.subtitle}
-                </p>
+                <p className="text-xs text-muted-foreground">{stat.subtitle}</p>
               </div>
             </CardContent>
           </Card>
@@ -206,9 +151,7 @@ export function DashboardView() {
       {/* Gastos por Categoria */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold tracking-tight">
-            Gastos por Categoria
-          </h2>
+          <h2 className="text-2xl font-bold tracking-tight">Gastos por Categoria</h2>
           <Button asChild>
             <Link href="/home/centros-custo">
               <DollarSign className="mr-2 h-4 w-4" />
@@ -216,71 +159,19 @@ export function DashboardView() {
             </Link>
           </Button>
         </div>
-
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {categories.map((category) => (
+          {categories.map(category => (
             <Card key={category.name}>
               <CardHeader>
-                <CardDescription className="mt-2">
-                  {category.description}
-                </CardDescription>
+                <CardDescription className="mt-2">{category.description}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-1">
-                <div className="space-y-1">
-                  <div className="flex items-baseline justify-between">
-                    <span className="text-2xl font-bold">
-                      {formatCurrency(category.used)}
-                    </span>
-                  </div>
+                <div className="flex items-baseline justify-between">
+                  <span className="text-2xl font-bold">{formatCurrency(category.used)}</span>
                 </div>
               </CardContent>
             </Card>
           ))}
-
-          {/* Parcela Card */}
-          {/* <Card className="border-orange-200 bg-orange-50/50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <AlertCircle className="h-5 w-5 text-orange-600" />
-                Vencimento da Parcela
-              </CardTitle>
-              <CardDescription className="text-orange-900">
-                <span className="text-2xl font-bold">
-                  {parcela.daysRemaining}
-                </span>{" "}
-                dias restantes
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <div className="mb-2 flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">
-                    Período utilizado
-                  </span>
-                  <span className="font-medium">
-                    {parcela.daysUsed} de {parcela.daysTotal} dias
-                  </span>
-                </div>
-                <Progress
-                  value={(parcela.daysUsed / parcela.daysTotal) * 100}
-                  className="h-2"
-                />
-              </div>
-              <p className="text-sm text-orange-900">
-                Cuidado com o prazo de utilização da parcela.
-              </p>
-              <div className="space-y-1 text-sm">
-                <p>
-                  <span className="font-medium">Centro de Custo:</span>{" "}
-                  {parcela.centroCusto}
-                </p>
-                <p>
-                  <span className="font-medium">Parcela:</span>{" "}
-                  {parcela.parcela}
-                </p>
-              </div>
-            </CardContent>
-          </Card> */}
         </div>
       </div>
 
@@ -290,10 +181,7 @@ export function DashboardView() {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle>Lançamentos Recentes</CardTitle>
-              <CardDescription>
-                Mostrando os 5 lançamentos mais recentes. Parcela atual: 4
-                (Abril)
-              </CardDescription>
+              <CardDescription>Mostrando a página {page + 1} de {totalPages}</CardDescription>
             </div>
             <Button onClick={() => setIsModalNovoLancamentoOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
@@ -306,71 +194,53 @@ export function DashboardView() {
             <table className="w-full">
               <thead>
                 <tr className="border-b">
-                  <th className="pb-3 text-left text-sm font-medium text-muted-foreground">
-                    Data
-                  </th>
-                  <th className="pb-3 text-left text-sm font-medium text-muted-foreground">
-                    Tipo
-                  </th>
-                  <th className="pb-3 text-left text-sm font-medium text-muted-foreground">
-                    Categoria
-                  </th>
-                  <th className="pb-3 text-left text-sm font-medium text-muted-foreground">
-                    Descrição
-                  </th>
-                  <th className="pb-3 text-right text-sm font-medium text-muted-foreground">
-                    Valor
-                  </th>
-                  <th className="pb-3 text-right text-sm font-medium text-muted-foreground">
-                    Status
-                  </th>
+                  <th className="pb-3 text-left text-sm font-medium text-muted-foreground">Data</th>
+                  <th className="pb-3 text-left text-sm font-medium text-muted-foreground">Tipo</th>
+                  <th className="pb-3 text-left text-sm font-medium text-muted-foreground">Categoria</th>
+                  <th className="pb-3 text-left text-sm font-medium text-muted-foreground">Descrição</th>
+                  <th className="pb-3 text-right text-sm font-medium text-muted-foreground">Valor</th>
+                  <th className="pb-3 text-right text-sm font-medium text-muted-foreground">Status</th>
                 </tr>
               </thead>
               <tbody>
-                {recentTransactions.map((transaction, index) => (
-                  <tr key={index} className="border-b last:border-0">
-                    <td className="py-3 text-sm">{transaction.date}</td>
+                {transactions.map(transaction => (
+                  <tr key={transaction.id} className="border-b last:border-0">
+                    <td className="py-3 text-sm">{transaction.dueDate}</td>
                     <td className="py-3">
-                      <Badge
-                        variant={
-                          transaction.type === "receita"
-                            ? "default"
-                            : "secondary"
-                        }
-                      >
-                        {transaction.type}
+                      <Badge variant={transaction.type === "INCOME" ? "default" : "secondary"}>
+                        {transaction.type === "INCOME" ? "receita" : "despesa"}
                       </Badge>
                     </td>
-                    <td className="py-3 text-sm">
-                      {transaction.category}
-                    </td>
-                    <td className="py-3 text-sm">
-                      {transaction.description}
-                    </td>
-                    <td
-                      className={`py-3 text-right text-sm font-medium ${
-                        transaction.value > 0
-                          ? "text-green-600"
-                          : "text-red-600"
-                      }`}
-                    >
-                      {formatCurrency(Math.abs(transaction.value))}
+                    <td className="py-3 text-sm">{transaction.expenseCategory}</td>
+                    <td className="py-3 text-sm">{transaction.notes}</td>
+                    <td className={`py-3 text-right text-sm font-medium ${transaction.amount > 0 ? "text-green-600" : "text-red-600"}`}>
+                      {formatCurrency(Math.abs(transaction.amount))}
                     </td>
                     <td className="py-3 text-right">
-                      <Badge
-                        variant={
-                          transaction.status === "Realizado"
-                            ? "default"
-                            : "outline"
-                        }
-                      >
-                        {transaction.status}
+                      <Badge variant={transaction.transactionStatus === "COMPLETED" ? "default" : "outline"}>
+                        {transaction.transactionStatus === "COMPLETED" ? "Realizado" : "Provisionado"}
                       </Badge>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Paginação */}
+          <div className="mt-4 flex justify-between">
+            <Button
+              disabled={page === 0}
+              onClick={() => fetchTransactions(page - 1)}
+            >
+              Anterior
+            </Button>
+            <Button
+              disabled={page + 1 >= totalPages}
+              onClick={() => fetchTransactions(page + 1)}
+            >
+              Próxima
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -396,39 +266,23 @@ export function DashboardView() {
             <table className="w-full">
               <thead>
                 <tr className="border-b">
-                  <th className="pb-3 text-left text-sm font-medium text-muted-foreground">
-                    Nome
-                  </th>
-                  <th className="pb-3 text-left text-sm font-medium text-muted-foreground">
-                    CNPJ
-                  </th>
-                  <th className="pb-3 text-left text-sm font-medium text-muted-foreground">
-                    Razão Social
-                  </th>
-                  <th className="pb-3 text-right text-sm font-medium text-muted-foreground">
-                    Ações
-                  </th>
+                  <th className="pb-3 text-left text-sm font-medium text-muted-foreground">Nome</th>
+                  <th className="pb-3 text-left text-sm font-medium text-muted-foreground">CNPJ</th>
+                  <th className="pb-3 text-left text-sm font-medium text-muted-foreground">Razão Social</th>
+                  <th className="pb-3 text-right text-sm font-medium text-muted-foreground">Ações</th>
                 </tr>
               </thead>
               <tbody>
-                {fornecedores.map((f) => (
+                {fornecedores.map(f => (
                   <tr key={f.id} className="border-b last:border-0">
                     <td className="py-3 text-sm">{f.name}</td>
                     <td className="py-3 text-sm">{f.cnpj}</td>
                     <td className="py-3 text-sm">{f.corporateName}</td>
                     <td className="py-3 text-right flex justify-end gap-2">
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => handleEditFornecedor(f)}
-                      >
+                      <Button variant="outline" size="icon" onClick={() => handleEditFornecedor(f)}>
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button
-                        variant="destructive"
-                        size="icon"
-                        onClick={() => handleDeleteFornecedor(f.id)}
-                      >
+                      <Button variant="destructive" size="icon" onClick={() => handleDeleteFornecedor(f.id)}>
                         <Trash className="h-4 w-4" />
                       </Button>
                     </td>
@@ -452,7 +306,6 @@ export function DashboardView() {
         }}
         fornecedor={fornecedorSelecionado}
       />
-
       <NovoLancamentoModal
         open={isModalNovoLancamentoOpen}
         onOpenChange={setIsModalNovoLancamentoOpen}

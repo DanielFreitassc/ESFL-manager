@@ -21,6 +21,39 @@ export interface TransactionCategoryStat {
   notes: string
 }
 
+export interface Supplier {
+  id: string
+  name: string
+  cnpj?: string
+  corporateName?: string
+}
+
+export interface TransactionPayload {
+  type: "INCOME" | "EXPENSE"
+  installmentNumber: number
+  costCenterId: string
+  expenseCategory: "PERSONNEL" | "SERVICE" | "CONSUMPTION" | "CAPITAL" | "FOOD" | "OPERATING"
+  supplierId?: string
+  notes?: string
+  amount: number
+  dueDate: string // formato "dd/MM/yyyy"
+  transactionStatus: "PROJECTION" | "COMPLETED"
+}
+
+export interface Transaction {
+  id: string
+  type: "INCOME" | "EXPENSE"
+  installmentNumber: number
+  costCenter: CostCenter
+  expenseCategory: string
+  supplier?: Supplier
+  notes?: string
+  amount: number
+  dueDate: string
+  transactionStatus?: "PROJECTION" | "COMPLETED"
+  createdAt: string
+}
+
 api.interceptors.request.use(
   (config) => {
     const token = Cookies.get("auth_token")
@@ -62,6 +95,18 @@ export interface AuthResponse {
 
 export interface ApiError {
   message: string
+}
+
+
+export async function createTransaction(payload: TransactionPayload): Promise<void> {
+  try {
+    await api.post("/transactions", payload)
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw new Error("Erro ao criar lançamento")
+  }
 }
 
 // Transactions API
@@ -274,5 +319,41 @@ export async function deleteCostCenter(id: string): Promise<void> {
       throw new Error(error.response.data.message)
     }
     throw new Error("Erro ao deletar centro de custo")
+  }
+}
+
+
+export async function getSuppliers(): Promise<Supplier[]> {
+  try {
+    const { data } = await api.get<Supplier[]>("/suppliers/list")
+    return data
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw new Error("Erro ao buscar fornecedores")
+  }
+}
+
+export async function getCostCentersList(): Promise<CostCenter[]> {
+  try {
+    const { data } = await api.get<CostCenter[]>("/costs/list")
+    return data
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw new Error("Erro ao buscar centros de custo")
+  }
+}
+export async function getTransactions(page = 0, size = 10): Promise<PaginatedResponse<Transaction>> {
+  try {
+    const { data } = await api.get<PaginatedResponse<Transaction>>(`/transactions?page=${page}&size=${size}`)
+    return data
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw new Error("Erro ao buscar transações")
   }
 }
