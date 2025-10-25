@@ -30,6 +30,8 @@ export function DashboardView() {
   const [fornecedores, setFornecedores] = useState<Fornecedor[]>([])
   const [fornecedorSelecionado, setFornecedorSelecionado] = useState<Fornecedor | undefined>(undefined)
 
+  const [transactionSelecionada, setTransactionSelecionada] = useState<Transaction | undefined>(undefined)
+
   const [stats, setStats] = useState<{ title: string; value: string; subtitle: string }[]>([])
   const [categories, setCategories] = useState<{ name: string; description: string; used: number }[]>([])
 
@@ -100,6 +102,21 @@ export function DashboardView() {
       setTotalPages(res.data.totalPages)
     } catch (error) {
       console.error("Erro ao buscar lançamentos:", error)
+    }
+  }
+
+  function handleEditTransaction(transaction: Transaction) {
+    setTransactionSelecionada(transaction)
+    setIsModalNovoLancamentoOpen(true)
+  }
+
+  // Deletar lançamento
+  async function handleDeleteTransaction(id: string) {
+    try {
+      await api.delete(`/transactions/${id}`)
+      setTransactions(prev => prev.filter(t => t.id !== id))
+    } catch (error) {
+      console.error("Erro ao deletar lançamento:", error)
     }
   }
 
@@ -211,17 +228,23 @@ export function DashboardView() {
                         {transaction.type === "INCOME" ? "receita" : "despesa"}
                       </Badge>
                     </td>
-                    {/* Mostrar a categoria em português */}
                     <td className="py-3 text-sm">{transaction.expenseCategoryPt || transaction.expenseCategory}</td>
                     <td className="py-3 text-sm">{transaction.notes}</td>
                     <td className={`py-3 text-right text-sm font-medium ${transaction.amount > 0 ? "text-green-600" : "text-red-600"}`}>
                       {formatCurrency(Math.abs(transaction.amount))}
                     </td>
-                    {/* Mostrar o status em português */}
                     <td className="py-3 text-right">
                       <Badge variant={transaction.transactionStatus === "efetuado" ? "default" : "outline"}>
                         {transaction.transactionStatus === "efetuado" ? "Realizado" : "Provisionado"}
                       </Badge>
+                    </td>
+                    <td className="py-3 text-right flex justify-end gap-2">
+                      <Button variant="outline" size="icon" onClick={() => handleEditTransaction(transaction)}>
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button variant="destructive" size="icon" onClick={() => handleDeleteTransaction(transaction.id)}>
+                        <Trash className="h-4 w-4" />
+                      </Button>
                     </td>
                   </tr>
                 ))}
@@ -310,6 +333,7 @@ export function DashboardView() {
       />
       <NovoLancamentoModal
         open={isModalNovoLancamentoOpen}
+        transaction={transactionSelecionada}
         onOpenChange={setIsModalNovoLancamentoOpen}
         onLancamentoCriado={() => {
           fetchStats()

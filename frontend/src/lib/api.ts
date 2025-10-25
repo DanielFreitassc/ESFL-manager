@@ -99,6 +99,16 @@ export interface ApiError {
   message: string
 }
 
+export async function updateTransaction(id: string, payload: TransactionPayload): Promise<void> {
+  try {
+    await api.put(`/transactions/${id}`, payload)
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw new Error("Erro ao atualizar lançamento")
+  }
+}
 
 export async function createTransaction(payload: TransactionPayload): Promise<void> {
   try {

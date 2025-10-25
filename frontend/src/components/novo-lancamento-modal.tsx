@@ -8,11 +8,13 @@ import { Badge } from "@/components/ui/badge"
 import { FilePenLine, Bot, WandSparkles, Lightbulb, FileText } from "lucide-react"
 import { NovoLancamentoFormModal } from "./novo-lancamento-form-modal"
 import { NovoLancamentoPorIaFormModal } from "./novo-lancamento-por-ia-form-modal" // importe o modal IA que fizemos
+import { Transaction } from "@/lib/api"
 
 interface NovoLancamentoModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onLancamentoCriado?: () => void
+  transaction?: Transaction
 }
 
 export function NovoLancamentoModal({ open, onOpenChange,onLancamentoCriado }: NovoLancamentoModalProps) {
