@@ -44,7 +44,7 @@ interface NovoLancamentoFormModalProps {
   onLancamentoCriado?: () => void
 }
 
-export function NovoLancamentoFormModal({ open, onOpenChange, sugestao  }: NovoLancamentoFormModalProps) {
+export function NovoLancamentoFormModal({ open, onOpenChange, sugestao, onLancamentoCriado  }: NovoLancamentoFormModalProps) {
   const [date, setDate] = useState("")
   const [type, setType] = useState<TypeKey>("despesa")
   const [status, setStatus] = useState<StatusKey>("pendente")
@@ -109,6 +109,7 @@ export function NovoLancamentoFormModal({ open, onOpenChange, sugestao  }: NovoL
       await api.post("/transactions", payload)
       toast.success("Lançamento criado com sucesso!")
       onOpenChange(false)
+      onLancamentoCriado?.()
     } catch (error: any) {
       toast.error(error?.response?.data?.message || "Erro ao criar lançamento")
     }

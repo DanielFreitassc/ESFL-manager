@@ -15,7 +15,7 @@ interface NovoLancamentoModalProps {
   onLancamentoCriado?: () => void
 }
 
-export function NovoLancamentoModal({ open, onOpenChange }: NovoLancamentoModalProps) {
+export function NovoLancamentoModal({ open, onOpenChange,onLancamentoCriado }: NovoLancamentoModalProps) {
   const [openForm, setOpenForm] = useState(false)
   const [openIA, setOpenIA] = useState(false)
 
@@ -100,7 +100,11 @@ export function NovoLancamentoModal({ open, onOpenChange }: NovoLancamentoModalP
       </Dialog>
 
       {/* Modal de formulário manual */}
-      <NovoLancamentoFormModal open={openForm} onOpenChange={setOpenForm} />
+      <NovoLancamentoFormModal
+          open={openForm}
+          onOpenChange={setOpenForm}
+          onLancamentoCriado={onLancamentoCriado} // <-- passa o callback
+        />
 
       {/* Modal IA */}
       <NovoLancamentoPorIaFormModal open={openIA} onOpenChange={setOpenIA} />

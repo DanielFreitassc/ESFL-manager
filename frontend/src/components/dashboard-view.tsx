@@ -310,15 +310,14 @@ export function DashboardView() {
       />
       <NovoLancamentoModal
         open={isModalNovoLancamentoOpen}
-        onOpenChange={(open) => {
-          setIsModalNovoLancamentoOpen(open)
-          if (!open) {
-            fetchStats()
-            fetchCategories()
-            fetchTransactions()
-          }
+        onOpenChange={setIsModalNovoLancamentoOpen}
+        onLancamentoCriado={() => {
+          fetchStats()
+          fetchCategories()
+          fetchTransactions()
         }}
       />
+
     </div>
   )
 }
