@@ -12,6 +12,7 @@ import { NovoLancamentoPorIaFormModal } from "./novo-lancamento-por-ia-form-moda
 interface NovoLancamentoModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  onLancamentoCriado?: () => void
 }
 
 export function NovoLancamentoModal({ open, onOpenChange }: NovoLancamentoModalProps) {

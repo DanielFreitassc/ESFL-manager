@@ -41,6 +41,7 @@ interface NovoLancamentoFormModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   sugestao?: SugestaoIA | null
+  onLancamentoCriado?: () => void
 }
 
 export function NovoLancamentoFormModal({ open, onOpenChange, sugestao  }: NovoLancamentoFormModalProps) {
@@ -67,20 +68,22 @@ export function NovoLancamentoFormModal({ open, onOpenChange, sugestao  }: NovoL
 
   // Buscar fornecedores e centros de custo
   useEffect(() => {
+  if (!open) return
     async function fetchData() {
-      try {
-        const [suppliers, costs] = await Promise.all([
-          api.get<Supplier[]>("/suppliers/list"),
-          api.get<CostCenter[]>("/costs/list")
-        ])
-        setSupplierList(suppliers.data)
-        setCostCenters(costs.data)
-      } catch (error) {
-        toast.error("Erro ao carregar fornecedores ou centros de custo")
+        try {
+          const [suppliers, costs] = await Promise.all([
+            api.get<Supplier[]>("/suppliers/list"),
+            api.get<CostCenter[]>("/costs/list")
+          ])
+          setSupplierList(suppliers.data)
+          setCostCenters(costs.data)
+        } catch {
+          toast.error("Erro ao carregar fornecedores ou centros de custo")
+        }
       }
-    }
-    fetchData()
-  }, [])
+      fetchData()
+    }, [open]) 
+
 
   const handleSubmit = async () => {
     if (!date || !amount || !supplierId || !costCenterId) {
