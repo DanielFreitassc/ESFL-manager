@@ -239,9 +239,9 @@ export function DashboardView() {
                       </Badge>
                     </td>
                     <td className="py-3 text-right flex justify-end gap-2">
-                      <Button variant="outline" size="icon" onClick={() => handleEditTransaction(transaction)}>
+                      {/* <Button variant="outline" size="icon" onClick={() => handleEditTransaction(transaction)}>
                         <Pencil className="h-4 w-4" />
-                      </Button>
+                      </Button> */}
                       <Button variant="destructive" size="icon" onClick={() => handleDeleteTransaction(transaction.id)}>
                         <Trash className="h-4 w-4" />
                       </Button>
