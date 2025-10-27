@@ -1,13 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { FilePenLine, Bot, WandSparkles, Lightbulb, FileText } from "lucide-react"
 import { NovoLancamentoFormModal } from "./novo-lancamento-form-modal"
-import { NovoLancamentoPorIaFormModal } from "./novo-lancamento-por-ia-form-modal" // importe o modal IA que fizemos
+import { NovoLancamentoPorIaFormModal } from "./novo-lancamento-por-ia-form-modal"
 import { Transaction } from "@/lib/api"
 
 interface NovoLancamentoModalProps {
@@ -17,23 +17,42 @@ interface NovoLancamentoModalProps {
   transaction?: Transaction
 }
 
-export function NovoLancamentoModal({ open, onOpenChange,onLancamentoCriado }: NovoLancamentoModalProps) {
+export function NovoLancamentoModal({
+  open,
+  onOpenChange,
+  onLancamentoCriado,
+  transaction,
+}: NovoLancamentoModalProps) {
   const [openForm, setOpenForm] = useState(false)
   const [openIA, setOpenIA] = useState(false)
 
-  const handleSelectManual = () => {
-    onOpenChange(false)
-    setTimeout(() => setOpenForm(true), 200) // pequeno delay para evitar bug visual
-  }
+  // 🔹 Lógica de abrir modal correto
+  useEffect(() => {
+    if (open) {
+      if (transaction) {
+        // Se é edição, abre direto o formulário manual
+        setOpenForm(true)
+      } else {
+        // Criação: garantir que nenhum formulário esteja aberto
+        setOpenForm(false)
+        setOpenIA(false)
+      }
+    } else {
+      // Fecha tudo quando modal pai fecha
+      setOpenForm(false)
+      setOpenIA(false)
+    }
+  }, [open, transaction])
 
-  const handleSelectIA = () => {
-    onOpenChange(false)
-    setTimeout(() => setOpenIA(true), 200) // abrir modal IA com delay para evitar bug visual
-  }
+  const handleSelectManual = () => setOpenForm(true)
+  const handleSelectIA = () => setOpenIA(true)
+
+  const showEscolhaModal = open && !transaction && !openForm && !openIA
 
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
+      {/* Modal de escolha */}
+      <Dialog open={showEscolhaModal} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-[850px] p-8">
           <DialogHeader className="mb-6">
             <DialogTitle className="flex items-center gap-2 text-2xl font-bold">
@@ -44,7 +63,10 @@ export function NovoLancamentoModal({ open, onOpenChange,onLancamentoCriado }: N
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             {/* Card Manual */}
-            <Card className="cursor-pointer transition-all hover:shadow-md hover:-translate-y-1" onClick={handleSelectManual}>
+            <Card
+              className="cursor-pointer transition-all hover:shadow-md hover:-translate-y-1"
+              onClick={handleSelectManual}
+            >
               <CardContent className="flex flex-col items-center p-8 text-center">
                 <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-slate-100">
                   <FilePenLine className="h-10 w-10 text-slate-600" />
@@ -73,7 +95,9 @@ export function NovoLancamentoModal({ open, onOpenChange,onLancamentoCriado }: N
                   <h3 className="bg-gradient-to-r from-purple-600 to-violet-600 bg-clip-text text-xl font-semibold text-transparent">
                     Lançamento com IA
                   </h3>
-                  <Badge className="border-violet-500 bg-violet-100 text-violet-700 hover:bg-violet-200">NOVO</Badge>
+                  <Badge className="border-violet-500 bg-violet-100 text-violet-700 hover:bg-violet-200">
+                    NOVO
+                  </Badge>
                 </div>
                 <p className="mb-8 text-sm text-muted-foreground">
                   Nossa IA analisa seus saldos e sugere lançamentos inteligentes baseados no histórico.
@@ -103,13 +127,23 @@ export function NovoLancamentoModal({ open, onOpenChange,onLancamentoCriado }: N
 
       {/* Modal de formulário manual */}
       <NovoLancamentoFormModal
-          open={openForm}
-          onOpenChange={setOpenForm}
-          onLancamentoCriado={onLancamentoCriado} // <-- passa o callback
-        />
+        open={openForm}
+        onOpenChange={(open) => {
+          setOpenForm(open)
+          if (!open) onOpenChange(false)
+        }}
+        onLancamentoCriado={onLancamentoCriado}
+        transaction={transaction}
+      />
 
       {/* Modal IA */}
-      <NovoLancamentoPorIaFormModal open={openIA} onOpenChange={setOpenIA} />
+      <NovoLancamentoPorIaFormModal
+        open={openIA}
+        onOpenChange={(open) => {
+          setOpenIA(open)
+          if (!open) onOpenChange(false)
+        }}
+      />
     </>
   )
 }

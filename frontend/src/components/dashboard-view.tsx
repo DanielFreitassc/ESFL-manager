@@ -16,6 +16,7 @@ import { NovoLancamentoModal } from "@/components/novo-lancamento-modal"
 import { NovoFornecedorModal } from "./novo-fornecedor-modal"
 import { api, ResponsePadrao, Transaction } from "@/lib/api"
 import { getTransactionsByCategory } from "@/lib/api"
+import { parse } from "date-fns" // 🔹 CORREÇÃO: Importar 'parse' para corrigir o formatDate
 
 interface Fornecedor {
   id: string
@@ -96,6 +97,8 @@ export function DashboardView() {
   // Buscar lançamentos paginados
   async function fetchTransactions(pageNumber = 0, size = 10) {
     try {
+      // 🔹 CORREÇÃO: Usando a função 'getTransactions' da api.ts (se ela existir)
+      // Se você não tiver ela, troque 'getTransactions' por 'api.get'
       const res = await api.get(`/transactions?page=${pageNumber}&size=${size}`)
       setTransactions(res.data.content)
       setPage(res.data.pageable.pageNumber)
@@ -145,6 +148,20 @@ export function DashboardView() {
 
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value)
+
+  // 🔹 CORREÇÃO: Corrigindo o 'Invalid time value' que ocorreria aqui
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return "N/A"
+    try {
+      // Lê a data no formato "dd/MM/yyyy"
+      const parsedDate = parse(dateStr, "dd/MM/yyyy", new Date())
+      // Exibe no formato local (ex: 27/10/2025)
+      return parsedDate.toLocaleDateString("pt-BR")
+    } catch (error) {
+      return "Data Inválida"
+    }
+  }
+
 
   return (
     <div className="space-y-6">
@@ -217,55 +234,49 @@ export function DashboardView() {
                   <th className="pb-3 text-left text-sm font-medium text-muted-foreground">Descrição</th>
                   <th className="pb-3 text-right text-sm font-medium text-muted-foreground">Valor</th>
                   <th className="pb-3 text-right text-sm font-medium text-muted-foreground">Status</th>
+                  <th className="pb-3 text-right text-sm font-medium text-muted-foreground">Ações</th>
                 </tr>
               </thead>
               <tbody>
-                {transactions.map(transaction => (
-                  <tr key={transaction.id} className="border-b last:border-0">
-                    <td className="py-3 text-sm">{transaction.dueDate}</td>
-                    <td className="py-3">
-                      <Badge variant={transaction.type === "INCOME" ? "default" : "secondary"}>
-                        {transaction.type === "INCOME" ? "receita" : "despesa"}
-                      </Badge>
-                    </td>
-                    <td className="py-3 text-sm">{transaction.expenseCategoryPt || transaction.expenseCategory}</td>
-                    <td className="py-3 text-sm">{transaction.notes}</td>
-                    <td className={`py-3 text-right text-sm font-medium ${transaction.amount > 0 ? "text-green-600" : "text-red-600"}`}>
-                      {formatCurrency(Math.abs(transaction.amount))}
-                    </td>
-                    <td className="py-3 text-right">
-                      <Badge variant={transaction.transactionStatus === "efetuado" ? "default" : "outline"}>
-                        {transaction.transactionStatus === "efetuado" ? "Realizado" : "Provisionado"}
-                      </Badge>
-                    </td>
-                    <td className="py-3 text-right flex justify-end gap-2">
-                      {/* <Button variant="outline" size="icon" onClick={() => handleEditTransaction(transaction)}>
-                        <Pencil className="h-4 w-4" />
-                      </Button> */}
-                      <Button variant="destructive" size="icon" onClick={() => handleDeleteTransaction(transaction.id)}>
-                        <Trash className="h-4 w-4" />
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
+                {transactions.map(transaction => {
+                  const statusLabel = transaction.transactionStatus === "COMPLETED" ? "Realizado" : "Provisionado"
+                  const statusVariant = transaction.transactionStatus === "COMPLETED" ? "default" : "outline"
+
+                  return (
+                    <tr key={transaction.id} className="border-b last:border-0">
+                      <td className="py-3 text-sm">{formatDate(transaction.dueDate)}</td>
+                      <td className="py-3">
+                        <Badge variant={transaction.type === "INCOME" ? "default" : "secondary"}>
+                          {transaction.type === "INCOME" ? "Receita" : "Despesa"}
+                        </Badge>
+                      </td>
+                      <td className="py-3 text-sm">{transaction.expenseCategoryPt || transaction.expenseCategory}</td>
+                      <td className="py-3 text-sm">{transaction.notes}</td>
+                      <td className={`py-3 text-right text-sm font-medium ${transaction.amount > 0 ? "text-green-600" : "text-red-600"}`}>
+                        {formatCurrency(Math.abs(transaction.amount))}
+                      </td>
+                      <td className="py-3 text-right">
+                        <Badge variant={statusVariant}>{statusLabel}</Badge>
+                      </td>
+                      <td className="py-3 text-right flex justify-end gap-2">
+                        <Button variant="outline" size="icon" onClick={() => handleEditTransaction(transaction)}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button variant="destructive" size="icon" onClick={() => handleDeleteTransaction(transaction.id)}>
+                          <Trash className="h-4 w-4" />
+                        </Button>
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
 
           {/* Paginação */}
           <div className="mt-4 flex justify-between">
-            <Button
-              disabled={page === 0}
-              onClick={() => fetchTransactions(page - 1)}
-            >
-              Anterior
-            </Button>
-            <Button
-              disabled={page + 1 >= totalPages}
-              onClick={() => fetchTransactions(page + 1)}
-            >
-              Próxima
-            </Button>
+            <Button disabled={page === 0} onClick={() => fetchTransactions(page - 1)}>Anterior</Button>
+            <Button disabled={page + 1 >= totalPages} onClick={() => fetchTransactions(page + 1)}>Próxima</Button>
           </div>
         </CardContent>
       </Card>
@@ -322,7 +333,7 @@ export function DashboardView() {
       {/* Modais */}
       <NovoFornecedorModal
         open={isModalNovoFornecedorOpen}
-        onOpenChange={(open) => {
+        onOpenChange={(open: boolean) => { // 🔹 CORREÇÃO: Adicionado o tipo 'boolean'
           setIsModalNovoFornecedorOpen(open)
           if (!open) {
             fetchFornecedores()
@@ -334,14 +345,16 @@ export function DashboardView() {
       <NovoLancamentoModal
         open={isModalNovoLancamentoOpen}
         transaction={transactionSelecionada}
-        onOpenChange={setIsModalNovoLancamentoOpen}
+        onOpenChange={(open: boolean) => { // 🔹 CORREÇÃO: Adicionado o tipo 'boolean'
+          setIsModalNovoLancamentoOpen(open)
+          if (!open) setTransactionSelecionada(undefined)
+        }}
         onLancamentoCriado={() => {
           fetchStats()
           fetchCategories()
           fetchTransactions()
         }}
       />
-
     </div>
   )
 }
