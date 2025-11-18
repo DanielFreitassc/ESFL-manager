@@ -40,6 +40,12 @@ public class SecurityConfigurations {
                 )
                 .authorizeHttpRequests(authorize -> authorize
 
+                .requestMatchers(HttpMethod.POST,"/parcels").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET,"/parcels").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET,"/parcels/{id}").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT,"/parcels/{id}").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE,"/parcels/{id}").hasRole("ADMIN")
+
                 .requestMatchers(HttpMethod.POST,"/costs").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.GET,"/costs").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.GET,"/costs/{id}").hasRole("ADMIN")
