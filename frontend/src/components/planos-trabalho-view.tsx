@@ -1,280 +1,204 @@
 "use client"
 
-import type React from "react"
-
-import { useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useEffect, useState } from "react"
+import { toast } from "react-toastify"
+import { createPlanoTrabalhoParcela, getParcels, updateParcel, deleteParcel } from "@/lib/api"
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Upload, FileText, Download, Trash2, Eye } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
-import { toast } from "react-toastify"
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select"
+import { Trash2, Edit, PlusCircle } from "lucide-react"
 
-interface PlanoTrabalho {
+interface Parcel {
   id: string
-  nome: string
-  centroCusto: string
-  ano: string
-  arquivo: string
-  dataUpload: string
-  tamanho: string
-  status: "Aprovado" | "Pendente" | "Rejeitado"
+  destination: string
+  amount: number
+  available: string   // agora é uma data (yyyy-MM-dd)
+  createdAt: string
 }
 
+const destinoLabels: Record<string, string> = {
+  EDUCATION: "Educação",
+  SHELTER: "Abrigos",
+  CHILD: "Serviço de Convivência e Fortalecimento de Vínculos",
+  MOTHERS: "Clube de mães",
+  AGED: "Idoso",
+}
+
+
+const destinos = [
+  { value: "EDUCATION", label: "Educação" },
+  { value: "SHELTER", label: "Abrigos" },
+  { value: "CHILD", label: "Serviço de Convivência e Fortalecimento de Vínculos" },
+  { value: "MOTHERS", label: "Clube de mães" },
+  { value: "AGED", label: "Idoso" },
+]
+
 export function PlanosTrabalhoView() {
-  const [selectedCentroCusto, setSelectedCentroCusto] = useState("")
-  const [selectedAno, setSelectedAno] = useState("")
-  const [nomeArquivo, setNomeArquivo] = useState("")
-  const [dragActive, setDragActive] = useState(false)
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [destination, setDestination] = useState("")
+  const [amount, setAmount] = useState("")
+  const [available, setAvailable] = useState("")
+  const [parcels, setParcels] = useState<Parcel[]>([])
+  const [editingId, setEditingId] = useState<string | null>(null)
 
-  // Mock data - substituir por dados reais da API
-  const [planos] = useState<PlanoTrabalho[]>([
-    {
-      id: "1",
-      nome: "Plano Anual Educação 2024",
-      centroCusto: "Educação",
-      ano: "2024",
-      arquivo: "plano-educacao-2024.pdf",
-      dataUpload: "15/03/2024",
-      tamanho: "2.4 MB",
-      status: "Aprovado",
-    },
-    {
-      id: "2",
-      nome: "Plano FUNDEB 2024",
-      centroCusto: "Fundeb",
-      ano: "2024",
-      arquivo: "plano-fundeb-2024.pdf",
-      dataUpload: "10/03/2024",
-      tamanho: "1.8 MB",
-      status: "Aprovado",
-    },
-    {
-      id: "3",
-      nome: "Plano SCFV 18-59 2024",
-      centroCusto: "SCFV 18-59",
-      ano: "2024",
-      arquivo: "plano-scfv-2024.pdf",
-      dataUpload: "05/03/2024",
-      tamanho: "1.2 MB",
-      status: "Pendente",
-    },
-  ])
-
-  const centrosCusto = ["Educação", "Fundeb", "SCFV 18-59", "Merenda", "Capital"]
-  const anos = ["2024", "2025", "2026"]
-
-  const handleDrag = (e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true)
-    } else if (e.type === "dragleave") {
-      setDragActive(false)
+  const loadParcels = async () => {
+    try {
+      const data = await getParcels()
+      setParcels(data.content)
+    } catch {
+      toast.error("Erro ao carregar parcelas")
     }
   }
 
-  const handleDrop = (e: React.DragEvent) => {
+  useEffect(() => {
+    loadParcels()
+  }, [])
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    e.stopPropagation()
-    setDragActive(false)
 
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      setSelectedFile(e.dataTransfer.files[0])
-      toast.success(`Arquivo ${e.dataTransfer.files[0].name} selecionado`)
-    }
-  }
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setSelectedFile(e.target.files[0])
-      toast.success(`Arquivo ${e.target.files[0].name} selecionado`)
-    }
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!selectedCentroCusto || !selectedAno || !nomeArquivo || !selectedFile) {
-      toast.error("Preencha todos os campos e selecione um arquivo")
+    if (!destination || !amount || !available) {
+      toast.error("Preencha todos os campos")
       return
     }
-    toast.success("Plano de trabalho submetido com sucesso!")
-    // Aqui você faria a chamada à API
+
+    try {
+      if (editingId) {
+        await updateParcel(editingId, {
+          destination,
+          amount: Number(amount),
+          available, // já está no formato yyyy-MM-dd
+        })
+        toast.success("Parcela atualizada!")
+      } else {
+        await createPlanoTrabalhoParcela({
+          destination,
+          amount: Number(amount),
+          available,
+        })
+        toast.success("Parcela cadastrada!")
+      }
+
+      setDestination("")
+      setAmount("")
+      setAvailable("")
+      setEditingId(null)
+      loadParcels()
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao salvar parcela")
+    }
   }
 
-  const handleView = (plano: PlanoTrabalho) => {
-    toast.info(`Visualizando ${plano.nome}`)
-    // Implementar visualização do arquivo
+  const handleEdit = (parcel: Parcel) => {
+    setEditingId(parcel.id)
+    setDestination(parcel.destination)
+    setAmount(String(parcel.amount))
+    setAvailable(parcel.available) // mantemos o ISO yyyy-MM-dd
   }
 
-  const handleDownload = (plano: PlanoTrabalho) => {
-    toast.success(`Baixando ${plano.arquivo}`)
-    // Implementar download do arquivo
-  }
-
-  const handleDelete = (plano: PlanoTrabalho) => {
-    toast.success(`${plano.nome} deletado`)
-    // Implementar deleção
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteParcel(id)
+      toast.success("Parcela removida!")
+      loadParcels()
+    } catch {
+      toast.error("Erro ao excluir parcela")
+    }
   }
 
   return (
-    <div className="space-y-6">
-      {/* Upload Form */}
+    <div className="flex flex-col gap-6 p-4">
       <Card>
         <CardHeader>
-          <CardTitle>Submeter Plano de Trabalho</CardTitle>
-          <CardDescription>Gerenciamento de documentos por centro de custo</CardDescription>
+          <CardTitle className="flex items-center gap-2">
+            <PlusCircle className="w-5 h-5" />
+            {editingId ? "Editar Parcela" : "Cadastrar Parcela"}
+          </CardTitle>
         </CardHeader>
+
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="space-y-2">
-                <Label htmlFor="centro-custo">Centro de Custo</Label>
-                <Select value={selectedCentroCusto} onValueChange={setSelectedCentroCusto}>
-                  <SelectTrigger id="centro-custo">
-                    <SelectValue placeholder="Selecione..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {centrosCusto.map((centro) => (
-                      <SelectItem key={centro} value={centro}>
-                        {centro}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="ano">Ano</Label>
-                <Select value={selectedAno} onValueChange={setSelectedAno}>
-                  <SelectTrigger id="ano">
-                    <SelectValue placeholder="Selecione..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {anos.map((ano) => (
-                      <SelectItem key={ano} value={ano}>
-                        {ano}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="nome-arquivo">Nome do Arquivo</Label>
-                <Input
-                  id="nome-arquivo"
-                  placeholder="Ex: Plano Anual 2024"
-                  value={nomeArquivo}
-                  onChange={(e) => setNomeArquivo(e.target.value)}
-                />
-              </div>
+          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            
+            <div>
+              <Label>Destino</Label>
+              <Select value={destination} onValueChange={setDestination}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
+                <SelectContent>
+                  {destinos.map((d) => (
+                    <SelectItem key={d.value} value={d.value}>
+                      {d.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
-            {/* Drag and Drop Area */}
-            <div
-              className={`relative rounded-lg border-2 border-dashed p-8 text-center transition-colors ${
-                dragActive ? "border-primary bg-primary/5" : "border-muted-foreground/25"
-              }`}
-              onDragEnter={handleDrag}
-              onDragLeave={handleDrag}
-              onDragOver={handleDrag}
-              onDrop={handleDrop}
-            >
-              <input
-                type="file"
-                id="file-upload"
-                className="hidden"
-                onChange={handleFileChange}
-                accept=".pdf,.doc,.docx"
+            <div>
+              <Label>Valor</Label>
+              <Input
+                type="number"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
               />
-              <Upload className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-              <p className="mb-2 text-sm font-medium">
-                {selectedFile ? selectedFile.name : "Arraste e solte o arquivo aqui"}
-              </p>
-              <p className="mb-4 text-xs text-muted-foreground">ou</p>
-              <Button type="button" variant="outline" onClick={() => document.getElementById("file-upload")?.click()}>
-                Selecionar Arquivo
+            </div>
+
+            <div>
+              <Label>Disponível em</Label>
+              <Input
+                type="date"
+                value={available}
+                onChange={(e) => setAvailable(e.target.value)}
+              />
+            </div>
+
+            <div className="flex items-end">
+              <Button type="submit" className="w-full">
+                {editingId ? "Atualizar" : "Cadastrar"}
               </Button>
             </div>
 
-            <Button type="submit" className="w-full">
-              <Upload className="mr-2 h-4 w-4" />
-              Submeter Plano de Trabalho
-            </Button>
           </form>
         </CardContent>
       </Card>
 
-      {/* Planos Submetidos */}
+      {/* LISTA DE PARCELAS */}
       <Card>
         <CardHeader>
-          <CardTitle>Planos Submetidos</CardTitle>
-          <CardDescription>Histórico de documentos enviados</CardDescription>
+          <CardTitle>Parcelas Cadastradas</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="pb-3 text-left text-sm font-medium text-muted-foreground">Nome</th>
-                  <th className="pb-3 text-left text-sm font-medium text-muted-foreground">Centro de Custo</th>
-                  <th className="pb-3 text-left text-sm font-medium text-muted-foreground">Ano</th>
-                  <th className="pb-3 text-left text-sm font-medium text-muted-foreground">Arquivo</th>
-                  <th className="pb-3 text-left text-sm font-medium text-muted-foreground">Data Upload</th>
-                  <th className="pb-3 text-left text-sm font-medium text-muted-foreground">Tamanho</th>
-                  <th className="pb-3 text-left text-sm font-medium text-muted-foreground">Status</th>
-                  <th className="pb-3 text-right text-sm font-medium text-muted-foreground">Ações</th>
+          <table className="w-full border-collapse text-sm">
+            <thead>
+              <tr className="text-left border-b">
+                <th className="p-2">Destino</th>
+                <th>Valor</th>
+                <th>Disponível em</th>
+                <th>Criado em</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {parcels.map((p) => (
+                <tr key={p.id} className="border-b hover:bg-gray-50">
+                  <td className="p-2">{destinoLabels[p.destination]}</td>
+                  <td>R$ {p.amount.toFixed(2)}</td>
+                  <td>{new Date(p.available).toLocaleDateString()}</td>
+                  <td>{new Date(p.createdAt).toLocaleDateString()}</td>
+                  <td className="flex gap-2 p-2">
+                    <Button variant="ghost" onClick={() => handleEdit(p)}>
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button variant="ghost" onClick={() => handleDelete(p.id)}>
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </Button>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {planos.map((plano) => (
-                  <tr key={plano.id} className="border-b last:border-0">
-                    <td className="py-3 text-sm font-medium">{plano.nome}</td>
-                    <td className="py-3 text-sm">{plano.centroCusto}</td>
-                    <td className="py-3 text-sm">{plano.ano}</td>
-                    <td className="py-3">
-                      <div className="flex items-center gap-2 text-sm">
-                        <FileText className="h-4 w-4 text-muted-foreground" />
-                        {plano.arquivo}
-                      </div>
-                    </td>
-                    <td className="py-3 text-sm">{plano.dataUpload}</td>
-                    <td className="py-3 text-sm">{plano.tamanho}</td>
-                    <td className="py-3">
-                      <Badge
-                        variant={
-                          plano.status === "Aprovado"
-                            ? "default"
-                            : plano.status === "Pendente"
-                              ? "secondary"
-                              : "destructive"
-                        }
-                      >
-                        {plano.status}
-                      </Badge>
-                    </td>
-                    <td className="py-3">
-                      <div className="flex justify-end gap-2">
-                        <Button variant="ghost" size="icon" onClick={() => handleView(plano)}>
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleDownload(plano)}>
-                          <Download className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleDelete(plano)}>
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
         </CardContent>
       </Card>
     </div>

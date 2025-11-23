@@ -15,6 +15,20 @@ export const api = axios.create({
   },
 })
 
+export interface PlanoTrabalhoPayload {
+  destination: string 
+  amount: number
+  available: string 
+}
+
+export interface ParcelResponse {
+id: string
+destination: string
+amount: number
+available: string
+createdAt: string
+}
+
 export interface TransactionCategoryStat {
   type: string
   amount: number
@@ -97,6 +111,58 @@ export interface AuthResponse {
 
 export interface ApiError {
   message: string
+}
+
+export async function createPlanoTrabalhoParcela(payload: PlanoTrabalhoPayload): Promise<{ message: string }> {
+  try {
+    const { data } = await api.post<{ message: string }>("/parcels", payload)
+    return data
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    throw new Error("Erro ao criar Plano de Trabalho (Parcela)")
+  }
+}
+
+export async function getParcels(): Promise<{ content: ParcelResponse[] }> {
+  try {
+  const { data } = await api.get("/parcels")
+  return data
+  } catch (error: any) {
+  if (error.response?.data?.message) throw new Error(error.response.data.message)
+  throw new Error("Erro ao carregar parcelas")
+  }
+}
+
+
+export async function getParcel(id: string): Promise<ParcelResponse> {
+  try {
+  const { data } = await api.get(`/parcels/${id}`)
+  return data
+  } catch (error: any) {
+  if (error.response?.data?.message) throw new Error(error.response.data.message)
+  throw new Error("Erro ao buscar parcela")
+  }
+}
+
+
+export async function updateParcel(id: string, payload: { destination: string; amount: number; available: string }): Promise<void> {
+  try {
+  await api.put(`/parcels/${id}`, payload)
+  } catch (error: any) {
+  if (error.response?.data?.message) throw new Error(error.response.data.message)
+  throw new Error("Erro ao atualizar parcela")
+  }
+}
+
+export async function deleteParcel(id: string): Promise<void> {
+  try {
+  await api.delete(`/parcels/${id}`)
+  } catch (error: any) {
+  if (error.response?.data?.message) throw new Error(error.response.data.message)
+  throw new Error("Erro ao excluir parcela")
+  }
 }
 
 export async function updateTransaction(id: string, payload: TransactionPayload): Promise<void> {

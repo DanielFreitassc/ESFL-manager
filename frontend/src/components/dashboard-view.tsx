@@ -64,7 +64,7 @@ export function DashboardView() {
   async function fetchStats() {
     try {
       const [incomeRes, expenseRes, realAmountRes] = await Promise.all([
-        api.get<{ totalAmount: number }>("/transactions/income"),
+        api.get<{ amount: number }>("/parcels/amount"), 
         api.get<{ totalAmount: number }>("/transactions/expense"),
         api.get<{ totalAmount: number }>("/transactions/real-amount")
       ])
@@ -75,7 +75,7 @@ export function DashboardView() {
       setStats([
         {
           title: "Receita",
-          value: formatCurrency(incomeRes.data.totalAmount),
+          value: formatCurrency(incomeRes.data.amount), 
           subtitle: "Recursos recebidos este mês"
         },
         {
