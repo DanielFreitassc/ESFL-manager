@@ -1,156 +1,179 @@
 import os
-import json
-from flask import Flask, jsonify, request
-from dotenv import load_dotenv
-from models import db, CostCenter
-from schemas import CostCenterSchema
-
-# IA Gemini
+import psycopg2
 import google.generativeai as genai
-from promptPadrao import system_prompt
+from dotenv import load_dotenv
+import json
 
-# --------------------------
-# 1. Configuração inicial
-# --------------------------
+# --------------------------------------
+# 1) Carrega variáveis de ambiente (.env)
+# --------------------------------------
 load_dotenv()
 
-app = Flask(__name__)
+DB_HOST = os.getenv("PG_HOST")
+DB_NAME = os.getenv("PG_DATABASE")   # corrigido para o nome real
+DB_USER = os.getenv("PG_USER")
+DB_PASS = os.getenv("PG_PASSWORD")
+DB_PORT = os.getenv("PG_PORT")
+DB_SSL = os.getenv("PG_SSLMODE")
 
-# Configuração do banco PostgreSQL
-db_url = os.getenv("POSTGRES_HOST_URL")
-db_user = os.getenv("POSTGRES_USER")
-db_pass = os.getenv("POSTGRES_PASSWORD")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
-if db_url and db_url.startswith("postgresql://") and db_user and db_pass and "@" not in db_url:
-    db_url = db_url.replace("postgresql://", f"postgresql://{db_user}:{db_pass}@")
+# --------------------------------------
+# 2) Conexão com o banco
+# --------------------------------------
+conn = psycopg2.connect(
+    host=DB_HOST,
+    port=DB_PORT,
+    sslmode=DB_SSL,
+    database=DB_NAME,
+    user=DB_USER,
+    password=DB_PASS
+)
+cursor = conn.cursor()
 
-app.config["SQLALCHEMY_DATABASE_URI"] = db_url
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-db.init_app(app)
 
-# --------------------------
-# Função auxiliar
-# --------------------------
-def _extract_json_text(text: str):
-    """Remove cercas de markdown e retorna a string JSON crua."""
-    if not isinstance(text, str):
+# --------------------------------------
+# 3) Função para listar parcelas
+# --------------------------------------
+def listar_parcelas():
+    cursor.execute("""
+        SELECT id, amount, available
+        FROM parcels
+        ORDER BY available DESC
+    """)
+    return cursor.fetchall()
+
+
+# --------------------------------------
+# 4) Consulta SQL completa de uma parcela
+# --------------------------------------
+def consultar_dados_parcela(parcel_id):
+    query = """
+        SELECT 
+            p.amount AS parcela_total,
+            p.available AS periodo,
+            COALESCE(SUM(t.amount), 0) AS total_gasto,
+            json_agg(
+                json_build_object(
+                    'transaction_id', t.id,
+                    'amount', t.amount,
+                    'due_date', t.due_date,
+                    'expense_category', t.expense_category,
+                    'supplier', s.name,
+                    'supplier_cnpj', s.cnpj,
+                    'cost_center', c.name,
+                    'cost_center_type', c.type
+                )
+            ) FILTER (WHERE t.id IS NOT NULL) AS detalhes
+        FROM parcels p
+        LEFT JOIN transactions t 
+            ON t.created_at::date >= p.available
+           AND t.created_at::date <  p.available + INTERVAL '90 days'
+        LEFT JOIN suppliers s ON s.id = t.supplier_id
+        LEFT JOIN cost_centers c ON c.id = t.cost_center_id
+        WHERE p.id = %s
+        GROUP BY p.id;
+    """
+
+    cursor.execute(query, (parcel_id,))
+    data = cursor.fetchone()
+
+    if not data:
         return None
-    t = text.strip()
-    fence = "`" * 3
-    if t.startswith(fence):
-        lines = t.splitlines()
-        if lines and lines[0].strip() == fence:
-            lines = lines[1:]
-        if lines and lines[-1].strip() == fence:
-            lines = lines[:-1]
-        t = "\n".join(lines).strip()
-    return t
 
-# --------------------------
-# 🧠 Endpoint unificado
-# --------------------------
-@app.route("/analyze", methods=["POST"])
-def analyze():
-    """
-    Endpoint unificado:
-    1. Consulta centros de custo aprovados no banco.
-    2. Envia dados do usuário para IA Gemini.
-    3. Retorna ambos os resultados juntos.
-    """
-    # --- 1) Leitura e validação do JSON de entrada ---
-    try:
-        user_data = request.get_json(force=True)
-    except Exception:
-        return jsonify({"error": "JSON inválido no corpo da requisição."}), 400
+    return {
+        "parcela_total": float(data[0]),
+        "periodo": str(data[1]),
+        "total_gasto": float(data[2]),
+        "detalhes": data[3] if data[3] else []
+    }
 
-    if not user_data:
-        return jsonify({"error": "JSON body obrigatório com campos: category, notes, amount."}), 400
 
-    missing = [k for k in ["category", "notes", "amount"] if k not in user_data]
-    if missing:
-        return jsonify({"error": f"Campos ausentes: {', '.join(missing)}"}), 400
+# --------------------------------------
+# 5) Prompt fixo para a IA
+# --------------------------------------
+SYSTEM_PROMPT = """
+Você é uma IA especialista em gestão financeira de instituições que recebem parcelas governamentais.
 
-    try:
-        amount = float(user_data["amount"])
-    except Exception:
-        return jsonify({"error": "amount deve ser numérico."}), 400
+Regras:
+- Parcela tem validade de 90 dias.
+- A despesa só pode ser paga com parcela da mesma data ou posterior.
+- Uma despesa pode usar múltiplas parcelas.
+- A verba só pode ser usada na destinação correta.
 
-    category = str(user_data["category"]).strip()
-    notes = str(user_data["notes"]).strip()
-
-    # --- 2) Consulta ao banco de dados ---
-    try:
-        cost_centers = CostCenter.query.filter_by(approved=True).all()
-        schema = CostCenterSchema(many=True)
-        cost_center_data = schema.dump(cost_centers)
-    except Exception as e:
-        return jsonify({"error": f"Erro ao consultar banco: {e}"}), 500
-
-    # --- 3) Integração com Gemini ---
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key:
-        return jsonify({"error": "GEMINI_API_KEY não configurada."}), 500
-
-    genai.configure(api_key=api_key)
-
-    user_input = f"""
-Requisição de nova despesa:
-
-Categoria: {category}
-Descrição: {notes}
-Valor: R$ {amount:.2f}
+Sua tarefa:
+→ Identificar padrões nos dados.
+→ Encontrar centros de custo usados, fornecedores e categorias.
+→ Avaliar se houve subutilização.
+→ Sugerir onde investir o restante da parcela de forma legal e eficiente.
+Sempre dê sugestões específicas, baseadas no comportamento da instituição.
 """
 
-    prompt = (
-        f"{system_prompt}\n\n"
-        f"{user_input}\n\n"
-        "Retorne somente o array JSON válido, sem markdown, sem comentários, sem crases."
+
+# --------------------------------------
+# 6) Função para gerar relatório no Gemini
+# --------------------------------------
+def gerar_relatorio_ia(dados):
+    genai.configure(api_key=GEMINI_API_KEY)
+
+    model = genai.GenerativeModel(
+        model_name="gemini-2.5-pro",
+        system_instruction=SYSTEM_PROMPT,
+        generation_config={"temperature": 0.2}
     )
 
-    try:
-        model = genai.GenerativeModel("gemini-2.5-pro")
-        response = model.generate_content(prompt)
+    prompt = f"""
+    Analise os seguintes dados financeiros da parcela:
 
-        raw_text = response.text or ""
-        json_text = _extract_json_text(raw_text)
+    Parcela total: R$ {dados['parcela_total']}
+    Período de liberação: {dados['periodo']}
+    Total gasto: R$ {dados['total_gasto']}
+    Transações detalhadas: {json.dumps(dados['detalhes'], indent=2, ensure_ascii=False)}
 
-        try:
-            parsed_ai = json.loads(json_text)
-        except Exception:
-            start = json_text.find("[")
-            end = json_text.rfind("]")
-            if start != -1 and end != -1:
-                parsed_ai = json.loads(json_text[start:end+1])
-            else:
-                return jsonify({
-                    "error": "A resposta da IA não pôde ser interpretada como JSON.",
-                    "raw": raw_text
-                }), 502
-    except Exception as e:
-        return jsonify({"error": f"Erro na integração com IA: {e}"}), 500
+    Gere um relatório técnico contendo:
+    1. Resumo da utilização da parcela
+    2. Análise dos fornecedores e centros de custo
+    3. Identificação de subutilização ou riscos
+    4. Sugestão de onde investir o restante da parcela considerando:
+        - categoria de despesa mais usada
+        - fornecedores mais recorrentes
+        - centros de custo ativos
+        - regras RN-001 a RN-004
+    5. Sugestões práticas e imediatas
+    """
 
-    # --- 4) Retorno unificado ---
-    return jsonify({
-        "database_results": cost_center_data,
-        "ai_simulation": parsed_ai
-    }), 200
+    resposta = model.generate_content(prompt)
+    return resposta.text
 
-# --------------------------
-# 🏠 Rota raiz
-# --------------------------
-@app.route("/", methods=["GET"])
-def home():
-    return jsonify({
-        "message": "🚀 API AFASC unificada está rodando!",
-        "available_endpoints": {
-            "/analyze": "Consulta centros de custo + simulação IA (POST)"
-        }
-    }), 200
 
-# --------------------------
-# Inicialização
-# --------------------------
+# --------------------------------------
+# 7) EXECUÇÃO PRINCIPAL
+# --------------------------------------
 if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()
-    app.run(host="0.0.0.0", port=5000, debug=True)
+
+    print("\n📦 LISTA DE PARCELAS DISPONÍVEIS:\n")
+    parcelas = listar_parcelas()
+
+    if len(parcelas) == 0:
+        print("❌ Nenhuma parcela encontrada no banco.")
+        exit()
+
+    # Exibir lista
+    for i, p in enumerate(parcelas, start=1):
+        print(f"{i}. ID: {p[0]} | Valor: R${p[1]} | Disponível em: {p[2]}")
+
+    # Selecionar parcela
+    escolha = int(input("\nDigite o número da parcela que deseja analisar: "))
+    parcela_id = parcelas[escolha - 1][0]
+
+    print(f"\n🔍 Buscando dados da parcela {parcela_id} ...\n")
+    dados = consultar_dados_parcela(parcela_id)
+
+    print("📦 Dados encontrados:\n")
+    print(json.dumps(dados, indent=2, ensure_ascii=False))
+
+    print("\n🤖 Gerando relatório da IA...\n")
+    relatorio = gerar_relatorio_ia(dados)
+
+    print("\n📄 RELATÓRIO GERADO:\n")
+    print(relatorio)

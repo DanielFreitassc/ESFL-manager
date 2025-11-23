@@ -1,0 +1,15 @@
+import os
+import psycopg2
+from dotenv import load_dotenv
+
+load_dotenv()  # Carrega o .env
+
+def get_connection():
+    return psycopg2.connect(
+        host=os.getenv("PG_HOST"),
+        port=os.getenv("PG_PORT"),
+        database=os.getenv("PG_DATABASE"),
+        user=os.getenv("PG_USER"),
+        password=os.getenv("PG_PASSWORD"),
+        sslmode=os.getenv("PG_SSLMODE", "require")
+    )
