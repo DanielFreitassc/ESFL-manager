@@ -17,9 +17,11 @@ import com.danielfreitassc.backend.dtos.transactions.TransactionRequestDto;
 import com.danielfreitassc.backend.dtos.transactions.TransactionResponseDto;
 import com.danielfreitassc.backend.dtos.transactions.TransactionViewDto;
 import com.danielfreitassc.backend.mappers.transactions.TransactionMapper;
+import com.danielfreitassc.backend.models.parcel.ParcelEntity;
 import com.danielfreitassc.backend.models.transactions.ExpenseCategory;
 import com.danielfreitassc.backend.models.transactions.TransactionEntity;
 import com.danielfreitassc.backend.models.transactions.TransactionType;
+import com.danielfreitassc.backend.repositories.parcel.ParcelRepository;
 import com.danielfreitassc.backend.repositories.transactions.TransactionRepository;
 import com.danielfreitassc.backend.services.centers.CostCenterService;
 import com.danielfreitassc.backend.services.suppliers.SupplierService;
@@ -34,6 +36,7 @@ public class TransactionService {
     private final TransactionMapper transactionMapper;
     private final CostCenterService costCenterService;
     private final SupplierService supplierService;
+    private final ParcelRepository parcelRepository;
 
     @Transactional
     public MessageResponseDto create(TransactionRequestDto transactionRequestDto) {
@@ -72,10 +75,10 @@ public class TransactionService {
     }
 
     public TransactionViewDto getRealAmount() {
-        List<TransactionEntity> income = transactionRepository.findAllByType(TransactionType.INCOME);
+        List<ParcelEntity> income = parcelRepository.findAll();
         List<TransactionEntity> expense = transactionRepository.findAllByType(TransactionType.EXPENSE);
 
-        BigDecimal amountIncome =  income.stream().map(TransactionEntity::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal amountIncome =  income.stream().map(ParcelEntity::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal amountExpense =  expense.stream().map(TransactionEntity::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
 
         BigDecimal amount = amountIncome.subtract(amountExpense);

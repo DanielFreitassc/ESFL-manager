@@ -1,5 +1,8 @@
 package com.danielfreitassc.backend.services.parcel;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -10,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.danielfreitassc.backend.dtos.common.MessageResponseDto;
+import com.danielfreitassc.backend.dtos.parcel.AmountResponseDto;
 import com.danielfreitassc.backend.dtos.parcel.ParcelRequestDto;
 import com.danielfreitassc.backend.dtos.parcel.ParcelResponseDto;
 import com.danielfreitassc.backend.mappers.parcel.ParcelMapper;
@@ -33,6 +37,23 @@ public class ParcelService {
     public Page<ParcelResponseDto> getParcels(Pageable pageable) {
         return parcelRepository.findAll(pageable).map(parcelMapper::toDto);
     }
+
+    public AmountResponseDto getAmount() {
+
+        LocalDate now = LocalDate.now();
+
+        LocalDate start = now.withDayOfMonth(1);
+        LocalDate end = now.withDayOfMonth(now.lengthOfMonth());
+
+        List<ParcelEntity> parcels = parcelRepository.findAllByAvailableBetween(start, end);
+
+        BigDecimal total = parcels.stream()
+                .map(ParcelEntity::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return new AmountResponseDto(total);
+    }
+
 
     public ParcelResponseDto getParcel(UUID id) {
         return parcelMapper.toDto(findParcelOrThrow(id));

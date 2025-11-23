@@ -3,10 +3,8 @@ package com.danielfreitassc.backend.dtos.users;
 import org.hibernate.validator.constraints.Length;
 
 import com.danielfreitassc.backend.configurations.OnCreate;
-import com.danielfreitassc.backend.models.users.UserRole;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 
 public record UserRequestDto(

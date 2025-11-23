@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.danielfreitassc.backend.dtos.common.MessageResponseDto;
+import com.danielfreitassc.backend.dtos.parcel.AmountResponseDto;
 import com.danielfreitassc.backend.dtos.parcel.ParcelRequestDto;
 import com.danielfreitassc.backend.dtos.parcel.ParcelResponseDto;
 import com.danielfreitassc.backend.services.parcel.ParcelService;
@@ -40,6 +41,11 @@ public class ParcelController {
     @GetMapping("/{id}")
     public ParcelResponseDto getParcel(@PathVariable UUID id) {
         return parcelService.getParcel(id);
+    }
+
+    @GetMapping("/amount")
+    public AmountResponseDto getAmount() {
+        return parcelService.getAmount();
     }
 
     @PutMapping("/{id}")
