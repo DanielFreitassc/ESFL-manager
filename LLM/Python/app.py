@@ -4,14 +4,13 @@ from dotenv import load_dotenv
 from models import db # Assumindo que db está definido em models.py
 from schemas import CostCenterSchema # Assumindo que está em schemas.py
 from ai_analysis import consultar_dados_parcela, gerar_planejamento_ia 
-
+from flask_cors import CORS
 # 1. Carrega variáveis do arquivo .env
 load_dotenv()
 
 app = Flask(__name__)
+CORS(app)
 
-# 🟢 CORREÇÃO CRÍTICA: Configuração do SQLAlchemy_DATABASE_URI
-# Usando as variáveis PG_HOST, PG_PORT, etc., que você definiu no .env-example
 
 DB_HOST = os.getenv("PG_HOST")
 DB_PORT = os.getenv("PG_PORT")

@@ -54,19 +54,38 @@ export interface TransactionPayload {
   transactionStatus: "PROJECTION" | "COMPLETED"
 }
 
+// Cost Center API
+export interface CostCenter {
+  id?: string
+  name: string
+  type: string
+  select?: string // Technical value used for API updates
+}
+
+
 export interface Transaction {
   id: string
-  type: "INCOME" | "EXPENSE"
+  type: "INCOME" | "EXPENSE" | string           // IA usa string → permite
   installmentNumber: number
-  costCenter: CostCenter
+
+  costCenter: CostCenter | null                  // IA não envia costCenter → aceita null
+
   expenseCategory: string
   expenseCategoryPt: string
-  supplier?: Supplier
+
+  supplier?: Supplier | null                     // IA não envia supplier → aceita null
+
   notes?: string
   amount: number
   dueDate: string
   createdAt: string
-  transactionStatus: "efetuado" | "projecao" | "COMPLETED" | "PROJECTION"
+
+  transactionStatus:
+    | "efetuado"
+    | "projecao"
+    | "COMPLETED"
+    | "PROJECTION"
+    | string                                     // IA envia string → permite
 }
 
 
@@ -328,13 +347,6 @@ export async function deleteUser(id: string): Promise<void> {
   }
 }
 
-// Cost Center API
-export interface CostCenter {
-  id?: string
-  name: string
-  type: string
-  select?: string // Technical value used for API updates
-}
 
 export async function getCostCenters(page = 0, size = 10): Promise<PaginatedResponse<CostCenter>> {
   try {

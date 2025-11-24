@@ -8,7 +8,8 @@ import { Badge } from "@/components/ui/badge"
 import { FilePenLine, Bot, WandSparkles, Lightbulb, FileText } from "lucide-react"
 import { NovoLancamentoFormModal } from "./novo-lancamento-form-modal"
 import { NovoLancamentoPorIaFormModal } from "./novo-lancamento-por-ia-form-modal"
-import { Transaction } from "@/lib/api"
+import { Transaction, ParcelResponse } from "@/lib/api"
+import { api } from "@/lib/api" // Para buscar as parcelas
 
 interface NovoLancamentoModalProps {
   open: boolean
@@ -25,29 +26,64 @@ export function NovoLancamentoModal({
 }: NovoLancamentoModalProps) {
   const [openForm, setOpenForm] = useState(false)
   const [openIA, setOpenIA] = useState(false)
+  const [openParcelSelect, setOpenParcelSelect] = useState(false)
+  const [selectedParcel, setSelectedParcel] = useState<ParcelResponse | null>(null)
+  const [parcelList, setParcelList] = useState<ParcelResponse[]>([])
+  const [transactionList, setTransactionList] = useState<Transaction[]>([])
+
+  const fetchLancamentos = async () => {
+    try {
+      const response = await api.get("/transactions") // ou sua rota real
+      setTransactionList(response.data) // supondo que você tenha um estado para a lista
+    } catch (error) {
+      console.error("Erro ao buscar lançamentos", error)
+    }
+  }
 
   // 🔹 Lógica de abrir modal correto
   useEffect(() => {
     if (open) {
       if (transaction) {
-        // Se é edição, abre direto o formulário manual
         setOpenForm(true)
       } else {
-        // Criação: garantir que nenhum formulário esteja aberto
         setOpenForm(false)
         setOpenIA(false)
       }
     } else {
-      // Fecha tudo quando modal pai fecha
       setOpenForm(false)
       setOpenIA(false)
+      setOpenParcelSelect(false)
+      setSelectedParcel(null)
     }
   }, [open, transaction])
 
+  // Buscar parcelas disponíveis
+  useEffect(() => {
+    if (!open) return
+    async function fetchParcels() {
+      try {
+        const response = await api.get<{ content: ParcelResponse[] }>("/parcels")
+        setParcelList(response.data.content)
+      } catch (error) {
+        console.error("Erro ao buscar parcelas:", error)
+      }
+    }
+    fetchParcels()
+  }, [open])
+  
   const handleSelectManual = () => setOpenForm(true)
-  const handleSelectIA = () => setOpenIA(true)
+  
+  const handleSelectIA = () => {
+    setOpenParcelSelect(true) // Abre modal de seleção de parcelas
+  }
 
-  const showEscolhaModal = open && !transaction && !openForm && !openIA
+  const handleParcelChosen = (parcel: ParcelResponse) => {
+    setSelectedParcel(parcel)
+    setOpenParcelSelect(false)
+    setOpenIA(true) // Abre modal IA com parcelId definido
+  }
+
+  const showEscolhaModal = open && !transaction && !openForm && !openIA && !openParcelSelect
 
   return (
     <>
@@ -100,7 +136,7 @@ export function NovoLancamentoModal({
                   </Badge>
                 </div>
                 <p className="mb-8 text-sm text-muted-foreground">
-                  Nossa IA analisa seus saldos e sugere lançamentos inteligentes baseados no histórico.
+                  Nossa IA analisa a parcela selecionada e sugere lançamentos inteligentes baseados no histórico.
                 </p>
                 <Button className="mt-auto h-11 w-full bg-gradient-to-r from-purple-500 to-violet-600 text-base text-white hover:opacity-90">
                   <WandSparkles className="mr-2 h-4 w-4" />
@@ -132,18 +168,46 @@ export function NovoLancamentoModal({
           setOpenForm(open)
           if (!open) onOpenChange(false)
         }}
-        onLancamentoCriado={onLancamentoCriado}
-        transaction={transaction}
+        transaction={openForm && transaction ? transaction : undefined}
+        onLancamentoCriado={onLancamentoCriado} // dispara refetch no pai
       />
 
+
+
+      {/* Modal de seleção de parcelas */}
+      <Dialog open={openParcelSelect} onOpenChange={setOpenParcelSelect}>
+        <DialogContent className="sm:max-w-[600px] p-6">
+          <DialogHeader>
+            <DialogTitle>Selecione a Parcela para IA</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-2 mt-4 max-h-64 overflow-y-auto">
+            {parcelList.map((p) => (
+              <Button
+                key={p.id}
+                onClick={() => handleParcelChosen(p)}
+                className="justify-start"
+              >
+                {p.destination} - R$ {p.amount.toLocaleString("pt-BR")} - Vence {p.available}
+              </Button>
+            ))}
+            {parcelList.length === 0 && (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                Nenhuma parcela disponível
+              </p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Modal IA */}
-      <NovoLancamentoPorIaFormModal
-        open={openIA}
-        onOpenChange={(open) => {
-          setOpenIA(open)
-          if (!open) onOpenChange(false)
-        }}
+      {selectedParcel && (
+       <NovoLancamentoPorIaFormModal
+         open={openIA}
+        onOpenChange={setOpenIA}
+        parcelId={selectedParcel.id}
+        onLancamentoCriado={onLancamentoCriado} // função que recarrega a lista
       />
+      )}
     </>
   )
 }

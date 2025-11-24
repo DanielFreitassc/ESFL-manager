@@ -10,7 +10,7 @@ import { useEffect, useState } from "react"
 import { api, createTransaction, updateTransaction } from "@/lib/api" 
 import { toast } from "react-toastify"
 import { format, parse } from "date-fns"
-import { SugestaoIA } from "./novo-lancamento-por-ia-form-modal"
+import { SugestaoIA } from "@/components/novo-lancamento-por-ia-form-modal"
 // 🔹 CORREÇÃO: Importar o tipo 'TransactionPayload'
 import type { Transaction, TransactionPayload } from "@/lib/api" 
 
@@ -132,21 +132,23 @@ export function NovoLancamentoFormModal({
 
   // Criar ou editar lançamento
   const handleSubmit = async () => {
+    // Validação dos campos obrigatórios
     if (!date || !amount || !supplierId || !costCenterId) {
       toast.error("Preencha todos os campos obrigatórios")
       return
     }
 
+    // Converter data do input para o formato do backend (dd/MM/yyyy)
     const dateInput = parse(date, "yyyy-MM-dd", new Date())
     const formattedDate = format(dateInput, "dd/MM/yyyy")
 
-    // 🔹 CORREÇÃO: Tipar o payload
+    // Montar payload para envio
     const payload: TransactionPayload = {
-      type: typeMap[type],
-      transactionStatus: statusMap[status],
-      expenseCategory: categoryMap[category],
+      type: typeMap[type], // receita ou despesa → INCOME/EXPENSE
+      transactionStatus: statusMap[status], // pendente/pago → PROJECTION/COMPLETED
+      expenseCategory: categoryMap[category], // categoria
       amount,
-      dueDate: formattedDate, // Usar a data formatada
+      dueDate: formattedDate,
       notes,
       supplierId,
       costCenterId,
@@ -154,25 +156,33 @@ export function NovoLancamentoFormModal({
     }
 
     setLoading(true)
+
     try {
-      if (transaction) {
-        // 🔹 CORREÇÃO: Usar a função 'updateTransaction'
+      if (transaction && transaction.id) {
+        // Se já existe, atualizar
         await updateTransaction(transaction.id, payload)
         toast.success("Lançamento atualizado com sucesso!")
       } else {
-        // 🔹 CORREÇÃO: Usar a função 'createTransaction'
+        // Novo lançamento
         await createTransaction(payload)
         toast.success("Lançamento criado com sucesso!")
       }
+
+      // Fechar modal
       onOpenChange(false)
+
+      // Callback opcional após criação/edição
       onLancamentoCriado?.()
     } catch (error: any) {
-      // 🔹 CORREÇÃO: As funções 'update/create' já tratam o erro do Axios
+      // Mostrar erro da API ou genérico
       toast.error(error?.message || "Erro ao salvar lançamento")
     } finally {
       setLoading(false)
     }
   }
+
+
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
