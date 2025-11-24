@@ -1,5 +1,7 @@
 package com.danielfreitassc.backend.repositories.transactions;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -12,4 +14,9 @@ import com.danielfreitassc.backend.models.transactions.TransactionType;
 public interface TransactionRepository extends JpaRepository<TransactionEntity, UUID> {
     List<TransactionEntity> findAllByType(TransactionType income);
     List<TransactionEntity> findAllByExpenseCategoryAndType(ExpenseCategory expenseCategory,TransactionType type);
+    List<TransactionEntity> findAllByDueDateBetweenAndType(
+        LocalDate start,
+        LocalDate end,
+        TransactionType type
+    );
 }

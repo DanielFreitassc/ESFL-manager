@@ -3,6 +3,7 @@ package com.danielfreitassc.backend.dtos.transactions;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import com.danielfreitassc.backend.dtos.centers.CostCenterResponseDto;
@@ -21,7 +22,7 @@ public record TransactionResponseDto(
     BigDecimal amount,
     @JsonFormat(pattern = "dd/MM/yyyy")
     LocalDate dueDate,
-    Timestamp createdAt,
+    LocalDateTime createdAt,
     String transactionStatus
 ) {
     

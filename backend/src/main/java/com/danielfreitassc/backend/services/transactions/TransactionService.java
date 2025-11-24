@@ -1,6 +1,8 @@
 package com.danielfreitassc.backend.services.transactions;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -60,12 +62,22 @@ public class TransactionService {
     }
 
     public TransactionViewDto getToExpense() {
-        List<TransactionEntity> transactionEntities = transactionRepository.findAllByType(TransactionType.EXPENSE);
+        LocalDate now = LocalDate.now();
 
-        BigDecimal totalAmount = transactionEntities.stream().map(TransactionEntity::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+        LocalDate start = now.withDayOfMonth(1);
+        LocalDate end = now.withDayOfMonth(now.lengthOfMonth());
 
-        return new TransactionViewDto(TransactionType.EXPENSE.getPtName(),totalAmount);
+        List<TransactionEntity> transactionEntities = transactionRepository
+                .findAllByDueDateBetweenAndType(start, end, TransactionType.EXPENSE);
+
+        BigDecimal totalAmount = transactionEntities.stream()
+                .map(TransactionEntity::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return new TransactionViewDto(TransactionType.EXPENSE.getPtName(), totalAmount);
     }
+
+
 
     public TransactionCategoryDto getRevenue(ExpenseCategory  expenseCategory,String msg) {
         List<TransactionEntity> transactionEntities = transactionRepository.findAllByExpenseCategoryAndType(expenseCategory,TransactionType.EXPENSE);
@@ -75,15 +87,30 @@ public class TransactionService {
     }
 
     public TransactionViewDto getRealAmount() {
-        List<ParcelEntity> income = parcelRepository.findAll();
-        List<TransactionEntity> expense = transactionRepository.findAllByType(TransactionType.EXPENSE);
+        LocalDate now = LocalDate.now();
 
-        BigDecimal amountIncome =  income.stream().map(ParcelEntity::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal amountExpense =  expense.stream().map(TransactionEntity::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+        LocalDate start = now.withDayOfMonth(1);
+        LocalDate end = now.withDayOfMonth(now.lengthOfMonth());
+
+        List<ParcelEntity> income = parcelRepository
+                .findAllByAvailableBetween(start, end);
+
+        List<TransactionEntity> expense = transactionRepository
+                .findAllByDueDateBetweenAndType(start, end, TransactionType.EXPENSE);
+
+        BigDecimal amountIncome = income.stream()
+                .map(ParcelEntity::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal amountExpense = expense.stream()
+                .map(TransactionEntity::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         BigDecimal amount = amountIncome.subtract(amountExpense);
+
         return new TransactionViewDto("Saldo real", amount);
     }
+
 
     public Page<TransactionResponseDto> getAll(Pageable pageable) {
         return transactionRepository.findAll(pageable).map(transactionMapper::toDto);
