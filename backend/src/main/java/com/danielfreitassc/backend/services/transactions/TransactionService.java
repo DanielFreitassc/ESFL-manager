@@ -43,11 +43,11 @@ public class TransactionService {
     @Transactional
     public MessageResponseDto create(TransactionRequestDto transactionRequestDto) {
         TransactionEntity transaction = transactionMapper.toEntity(transactionRequestDto);
-
         costCenterService.findCostOrThrow(transaction.getCostCenter().getId());
-
+        
         supplierService.findSupplierOrThrow(transaction.getSupplier().getId());
-
+        
+        transaction.setType(TransactionType.EXPENSE);
         transactionRepository.save(transaction);
 
         return new MessageResponseDto("Transação feita com sucesso!");

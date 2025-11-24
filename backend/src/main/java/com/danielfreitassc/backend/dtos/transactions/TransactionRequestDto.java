@@ -6,7 +6,6 @@ import java.util.UUID;
 
 import com.danielfreitassc.backend.models.transactions.ExpenseCategory;
 import com.danielfreitassc.backend.models.transactions.TransactionStatus;
-import com.danielfreitassc.backend.models.transactions.TransactionType;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import jakarta.validation.constraints.DecimalMin;
@@ -15,9 +14,6 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
 public record TransactionRequestDto(
-    @NotNull(message = "O tipo de transação é obrigatório.")
-    TransactionType type,
-
     @Min(value = 0, message = "O valor não pode ser negativo")
     int installmentNumber,
 

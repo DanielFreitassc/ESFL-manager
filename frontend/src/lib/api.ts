@@ -43,14 +43,14 @@ export interface Supplier {
 }
 
 export interface TransactionPayload {
-  type: "INCOME" | "EXPENSE"
+  type?: "INCOME" | "EXPENSE" // <--- Agora é opcional (?)
   installmentNumber: number
   costCenterId: string
-  expenseCategory: "PERSONNEL" | "SERVICE" | "CONSUMPTION" | "CAPITAL" | "FOOD" | "OPERATING"
+  expenseCategory: "PERSONNEL" | "SERVICE" | "CONSUMPTION" | "CAPITAL" | "FOOD" | "OPERATING" | string
   supplierId?: string
   notes?: string
   amount: number
-  dueDate: string // formato "dd/MM/yyyy"
+  dueDate: string 
   transactionStatus: "PROJECTION" | "COMPLETED"
 }
 

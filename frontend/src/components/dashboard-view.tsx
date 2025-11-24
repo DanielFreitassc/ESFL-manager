@@ -252,7 +252,7 @@ export function DashboardView() {
                       </td>
                       <td className="py-3 text-sm">{transaction.expenseCategoryPt || transaction.expenseCategory}</td>
                       <td className="py-3 text-sm">{transaction.notes}</td>
-                      <td className={`py-3 text-right text-sm font-medium ${transaction.amount > 0 ? "text-green-600" : "text-red-600"}`}>
+                      <td className={`py-3 text-right text-sm font-medium ${transaction.amount > 0 ? "text-red-600" : "text-green-600"}`}>
                         {formatCurrency(Math.abs(transaction.amount))}
                       </td>
                       <td className="py-3 text-right">

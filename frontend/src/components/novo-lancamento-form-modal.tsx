@@ -192,36 +192,23 @@ export function NovoLancamentoFormModal({
         </DialogHeader>
 
         <div className="grid grid-cols-12 gap-4">
-          <div className="col-span-12 md:col-span-4 flex flex-col">
-            <label>Data *</label>
-            <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-          </div>
+            <div className="col-span-12 md:col-span-6 flex flex-col">
+              <label>Data *</label>
+              <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+            </div>
 
-          <div className="col-span-12 md:col-span-4 flex flex-col">
-            <label>Tipo *</label>
-            <Select value={type} onValueChange={(v) => setType(v as TypeKey)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o tipo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="receita">Receita</SelectItem>
-                <SelectItem value="despesa">Despesa</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="col-span-12 md:col-span-4 flex flex-col">
-            <label>Status *</label>
-            <Select value={status} onValueChange={(v) => setStatus(v as StatusKey)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="pendente">Pendente</SelectItem>
-                <SelectItem value="pago">Pago</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+              <div className="col-span-12 md:col-span-6 flex flex-col">
+                <label>Status *</label>
+                <Select value={status} onValueChange={(v) => setStatus(v as StatusKey)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pendente">Pendente</SelectItem>
+                    <SelectItem value="pago">Pago</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
         </div>
 
         <div className="mt-3">
