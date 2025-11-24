@@ -1,0 +1,17 @@
+{"properties": [
+  {
+    "name": "api.security.token.secret",
+    "type": "java.lang.String",
+    "description": "A description for 'api.security.token.secret'"
+  },
+  {
+    "name": "user.mock.username",
+    "type": "java.lang.String",
+    "description": "A description for 'user.mock.username'"
+  },
+  {
+    "name": "user.mock.password",
+    "type": "java.lang.String",
+    "description": "A description for 'user.mock.password'"
+  }
+]}
