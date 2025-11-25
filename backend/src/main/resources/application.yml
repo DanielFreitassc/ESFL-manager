@@ -2,7 +2,7 @@ spring:
   application:
     name: backend
   datasource:
-    url: jdbc:postgresql://${PGHOST:localhost}:5432/${PGDATABASE:db}
+    url: jdbc:postgresql://${PGHOST:localhost}:${PGPORT:5432}/${PGDATABASE:db}
     username: ${POSTGRES_USER:postgres}
     password: ${PGPASSWORD:postgres}
   jpa:
