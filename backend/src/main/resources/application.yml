@@ -2,12 +2,12 @@ spring:
   application:
     name: backend
   datasource:
-    url: jdbc:postgresql://localhost:5432/db
-    username: postgres
-    password: postgres
+    url: jdbc:postgresql://${PGHOST:localhost}:5432/${PGDATABASE:db}
+    username: ${POSTGRES_USER:postgres}
+    password: ${PGPASSWORD:postgres}
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
 
 api:
  security:
@@ -17,7 +17,7 @@ api:
 user:
     mock:
         username: admin@admin.com
-        password: Senha12345
+        password: ${PGPASSWORD:Senha1234}
 
 server:
   port: 8080
