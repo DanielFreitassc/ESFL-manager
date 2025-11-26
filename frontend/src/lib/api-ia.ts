@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const IA_BASE_URL = process.env.NEXT_PUBLIC_IA_URL ?? "http://localhost:5000";
+const IA_BASE_URL = "https://esfl-manager-l785.onrender.com"
 
 export const apiIA = axios.create({
   baseURL: IA_BASE_URL,
