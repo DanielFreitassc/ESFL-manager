@@ -1,13 +1,14 @@
 import axios from "axios";
 
+const IA_BASE_URL = process.env.NEXT_PUBLIC_IA_URL ?? "http://localhost:5000";
+
 export const apiIA = axios.create({
-  baseURL: "http://localhost:5000",
+  baseURL: IA_BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },
-  timeout: 445000, // 5 segundos
-})
-
+  timeout: 445000, // tempo máximo
+});
 
 export interface ParcelaIA {
   expenseCategory: string;
