@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const IA_BASE_URL = "https://esfl-manager-l785.onrender.com"
+const IA_BASE_URL = "https://esfl-manager-1.onrender.com"
 
 export const apiIA = axios.create({
   baseURL: IA_BASE_URL,
