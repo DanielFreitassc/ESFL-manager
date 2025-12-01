@@ -1,0 +1,77 @@
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=${PG_USER}
+      - POSTGRES_PASSWORD=${PG_PASSWORD}
+      - POSTGRES_DB=${PG_DATABASE}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/18/docker
+    networks:
+      - satc-network
+
+  llm:
+    build:
+      context: ./LLM/Python
+      dockerfile: Dockerfile
+    container_name: app-llm
+    ports:
+      - "5000:5000"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - PG_HOST=${PG_HOST}
+      - PG_PORT=${PG_PORT}
+      - PG_USER=${PG_USER}
+      - PG_PASSWORD=${PG_PASSWORD}
+      - PG_SSLMODE=${PG_SSLMODE}
+      
+    networks:
+      - satc-network
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: app-backend
+    ports:
+      - "8080:8080"
+    environment:
+      - JWT_SECRET=${JWT_SECRET}
+      - POSTGRES_USER=${PG_USER}
+      - PGPASSWORD=${PG_PASSWORD}
+      - ADMIN_USER=${ADMIN_USER}
+      - ADMIN_PASS=${ADMIN_PASS}
+      - PGDATABASE=${PG_DATABASE}
+      - PGHOST=${PG_HOST}
+      - PGPORT=${PG_PORT}
+      - TZ=America/Sao_Paulo
+      - spring.jpa.properties.hibernate.jdbc.time_zone=America/Sao_Paulo
+      - spring.jackson.time-zone=America/Sao_Paulo
+    restart: unless-stopped
+    networks:
+      - satc-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: app-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+    restart: unless-stopped
+    networks:
+      - satc-network
+volumes:
+  pgdata:
+
+networks:
+  satc-network:
+    driver: bridge
