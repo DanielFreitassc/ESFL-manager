@@ -10,7 +10,7 @@ load_dotenv()
 
 app = Flask(__name__)
 
-CORS(app, resources={r"/*": {"origins": "https://afasc-esfl.vercel.app"}})
+CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
 
 
 DB_HOST = os.getenv("PG_HOST")

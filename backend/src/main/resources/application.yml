@@ -2,9 +2,9 @@ spring:
   application:
     name: backend
   datasource:
-    url: jdbc:postgresql://${PGHOST:localhost}:${PGPORT:5432}/${PGDATABASE:db}
-    username: ${POSTGRES_USER:postgres}
-    password: ${PGPASSWORD:postgres}
+    url: jdbc:postgresql://${PG_HOST:localhost}:${PG_PORT:5432}/${PG_DATABASE:db}
+    username: ${PG_USER:postgres}
+    password: ${PG_PASSWORD:postgres}
   jpa:
     hibernate:
       ddl-auto: update
@@ -16,8 +16,8 @@ api:
 
 user:
     mock:
-        username: admin@admin.com
-        password: ${PGPASSWORD:Senha1234}
-
+        username: ${ADMIN_USER:admin@admin.com}
+        password: ${ADMIN_PASS:Senha1234}
+        
 server:
   port: 8080
